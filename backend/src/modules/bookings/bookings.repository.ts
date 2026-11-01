@@ -1,4 +1,5 @@
 import type pg from "pg";
+import type { BookingStatus } from "../../types/domain.js";
 import type { CategoryCode, QuoteResponse, BookingDetailResponse } from "../../contracts/fare-system.js";
 
 export interface BookingEntity {
@@ -27,7 +28,7 @@ export interface BookingEntity {
   total_amount: number;
   advance_amount: number;
   balance_amount: number;
-  status: "pending_payment" | "confirmed" | "driver_assigned" | "in_transit" | "completed" | "cancelled";
+  status: BookingStatus;
   created_at: string;
   updated_at: string;
 }

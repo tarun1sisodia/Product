@@ -34,6 +34,8 @@ This directory contains comprehensive documentation for the SK Baghel Tour & Tra
 
 ### Testing & Quality
 
+**Current implementation status:** See the [partial conformance audit](AUDIT_CONFORMANCE_REPORT.md). The product is not certified complete; test/build success is separate from full requirements compliance.
+
 | File | Purpose | When to Read |
 |------|---------|--------------|
 | [`TESTING_STRATEGY.md`](TESTING_STRATEGY.md) | Testing approach, unit tests, integration tests, E2E | For writing tests |

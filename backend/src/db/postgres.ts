@@ -987,7 +987,7 @@ export async function createPostgresRepositories(databaseUrl: string): Promise<R
             if (!rows[0]) throw new Error("Payment not found");
             await query(
               txClient,
-              `update bookings set status='confirmed', updated_at=$2 where id=$1 and status='pending_payment'`,
+              `update bookings set status='paid_confirmed', updated_at=$2 where id=$1 and status in ('draft', 'pending_payment')`,
               [params.bookingId, new Date().toISOString()],
             );
             if (params.webhookEventId) {
@@ -1015,6 +1015,7 @@ export async function createPostgresRepositories(databaseUrl: string): Promise<R
               txClient,
               `update payments set
                 status='needs_review',
+                reconciliation_status='needs_review',
                 failure_reason=$2,
                 provider_payment_id=coalesce($3, provider_payment_id),
                 updated_at=$4

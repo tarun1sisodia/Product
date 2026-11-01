@@ -285,8 +285,8 @@ class MockPaymentsRepository extends PaymentsRepository {
       p.updatedAt = new Date().toISOString();
     }
     const b = this.bookingsRepo.bookings.get(params.bookingId);
-    if (b && b.status === "pending_payment") {
-      b.status = "confirmed";
+    if (b && (b.status === "draft" || b.status === "pending_payment")) {
+      b.status = "paid_confirmed";
       b.updated_at = new Date().toISOString();
     }
     if (params.webhookEventId) {
@@ -570,7 +570,7 @@ describe("Section 12.12: Booking and payment (BK-01 to PM-10)", () => {
     expect(paymentsRepo.payments.size).toBe(1);
   });
 
-  it("PM-03: Verified 'captured' webhook, matching amount -> payment captured, booking confirmed, one transaction", async () => {
+  it("PM-03: Verified 'captured' webhook, matching amount -> payment captured, booking paid_confirmed, one transaction", async () => {
     const booking = await bookingsService.createBooking({
       quote: baseQuoteReq,
       quoted_total: 2500,
@@ -609,7 +609,7 @@ describe("Section 12.12: Booking and payment (BK-01 to PM-10)", () => {
     expect(updatedPayment?.providerPaymentId).toBe("pay_xyz999");
 
     const updatedBooking = await bookingsRepo.getById(booking.id);
-    expect(updatedBooking?.status).toBe("confirmed");
+    expect(updatedBooking?.status).toBe("paid_confirmed");
   });
 
   it("PM-04: Same event_id delivered twice -> second is a no-op; one event row", async () => {
