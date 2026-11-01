@@ -194,8 +194,8 @@ export class PaymentsRepository {
 
       await client.query(
         `UPDATE bookings 
-         SET status = 'confirmed', updated_at = NOW() 
-         WHERE id = $1 AND status = 'pending_payment'`,
+         SET status = 'paid_confirmed', updated_at = NOW()
+         WHERE id = $1 AND status IN ('draft', 'pending_payment')`,
         [params.bookingId]
       );
 
@@ -226,7 +226,7 @@ export class PaymentsRepository {
       await client.query("BEGIN");
 
       await client.query(
-        `UPDATE payments SET status = 'needs_review', failure_reason = $1, provider_payment_id = COALESCE($2, provider_payment_id), updated_at = NOW() WHERE id = $3`,
+        `UPDATE payments SET status = 'needs_review', reconciliation_status = 'needs_review', failure_reason = $1, provider_payment_id = COALESCE($2, provider_payment_id), updated_at = NOW() WHERE id = $3`,
         [params.reason, params.providerPaymentId ?? null, params.paymentId]
       );
 

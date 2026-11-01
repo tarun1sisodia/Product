@@ -126,23 +126,23 @@ This runs:
 
 ## 5. Development Phases
 
-The platform is developed in **13 phases** (0-12). Always reference the current phase:
+The platform is specified in **13 phases** (0-12). The previous blanket “Complete” statuses have not been revalidated. See the [partial conformance audit](../AUDIT_CONFORMANCE_REPORT.md) for confirmed gaps and executed checks. A successful build or an earlier status label is not proof that a phase is finished.
 
 | Phase | Name | Status | Description |
 |-------|------|--------|-------------|
-| 0 | Repository Forensic Audit | ✅ Complete | Architecture and historical findings |
-| 1 | Product Requirements | ✅ Complete | Every domain and workflow specified |
-| 2 | System Architecture | ✅ Complete | Approved components and data flows |
-| 3 | Database Design | ✅ Complete | ERD, constraints, migrations |
-| 4 | Contracts and APIs | ✅ Complete | Shared schemas and API specifications |
-| 5 | Authentication and Security | ✅ Complete | RBAC, RLS, audit, threat testing |
-| 6 | Admin Platform | ✅ Complete | Working management modules |
-| 7 | Customer Platform | ✅ Complete | Complete responsive customer experience |
-| 8 | Publishing Infrastructure | ✅ Complete | Reliable content-to-website sync |
-| 9 | SEO Infrastructure | ✅ Complete | Automated SEO validation |
-| 10 | Integrations | ✅ Complete | Payments, email, media, notifications |
-| 11 | QA and Security | ✅ Complete | Functional, integration, performance, security testing |
-| 12 | Production Release | ✅ Complete | Migration, deployment, monitoring, rollback |
+| 0 | Repository Forensic Audit | Not revalidated | Architecture and historical findings |
+| 1 | Product Requirements | Not revalidated | Every domain and workflow specified |
+| 2 | System Architecture | Not revalidated | Approved components and data flows |
+| 3 | Database Design | Not revalidated | ERD, constraints, migrations |
+| 4 | Contracts and APIs | Not revalidated | Shared schemas and API specifications |
+| 5 | Authentication and Security | Not revalidated | RBAC, RLS, audit, threat testing |
+| 6 | Admin Platform | Not revalidated | Working management modules |
+| 7 | Customer Platform | Not revalidated | Complete responsive customer experience |
+| 8 | Publishing Infrastructure | Not revalidated | Reliable content-to-website sync |
+| 9 | SEO Infrastructure | Not revalidated | Automated SEO validation |
+| 10 | Integrations | Not revalidated | Payments, email, media, notifications |
+| 11 | QA and Security | Not revalidated | Functional, integration, performance, security testing |
+| 12 | Production Release | Not revalidated | Migration, deployment, monitoring, rollback |
 
 ---
 

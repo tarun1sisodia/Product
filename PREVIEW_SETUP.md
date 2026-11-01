@@ -41,7 +41,9 @@ npm run customer:build    # prerender pass — 120 pages, 106 sitemap URLs
 
 ## Known gaps in this snapshot
 
-- `docs/SEO_ENGINE.md` §4.1 requires `Product` / `Service` nodes on route, local-package and
-  transfer templates; the templates here still publish only `TaxiService` / `TouristTrip`.
-- No `scripts/audit-docs-conformance.mjs` gate and no `docs/AUDIT_CONFORMANCE_REPORT.md`.
-- `react/src/data/fleetCatalogue.ts` is absent: fleet names/prices are still duplicated per page.
+- `docs/SEO_ENGINE.md` §10.2 requests `Product` on route templates; the route template
+  currently publishes `TaxiService`. See the conformance report before broadening this claim to other templates.
+- A partial audit is recorded in `docs/AUDIT_CONFORMANCE_REPORT.md`; there is still no
+  automated `scripts/audit-docs-conformance.mjs` gate.
+- `react/src/data/fleetCatalogue.ts` is absent, but `react/src/data/fleets.ts` is an existing
+  registry. Canonical group/model parity and remaining duplication still need verification.

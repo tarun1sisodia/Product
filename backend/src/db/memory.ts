@@ -487,8 +487,8 @@ export function createMemoryRepositories(nowIso = new Date().toISOString()): Rep
         }
         payment.updatedAt = new Date().toISOString();
 
-        if (booking.status === "pending_payment") {
-          booking.status = "confirmed";
+        if (booking.status === "draft" || booking.status === "pending_payment") {
+          booking.status = "paid_confirmed";
           booking.updatedAt = new Date().toISOString();
         }
 
@@ -512,6 +512,7 @@ export function createMemoryRepositories(nowIso = new Date().toISOString()): Rep
         }
 
         payment.status = "needs_review";
+        payment.reconciliationStatus = "needs_review";
         payment.failureReason = params.reason;
         if (params.providerPaymentId) {
           payment.providerPaymentId = params.providerPaymentId;
