@@ -1,0 +1,251 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand Core Colors */
+  --color-primary: #9f3c16;
+  --color-primary-container: #bf542c;
+  --color-primary-fixed: #ffdbcf;
+  --color-primary-fixed-dim: #ffb59c;
+  --color-on-primary: #ffffff;
+  --color-white: #ffffff;
+  --color-on-primary-container: #fffbff;
+  --color-on-primary-fixed: #390c00;
+  --color-on-primary-fixed-variant: #822801;
+
+  /* Terracotta & Heritage Accents */
+  --color-terracotta-sandstone: #C85A32;
+  --color-terracotta-sunlit: #D97746;
+  /* Deepened terracotta for white-text badges — #C85A32 on white is 4.23:1
+     (fails WCAG AA); this is 5.10:1. Added 2026-10-01 (a11y fix). */
+  --color-terracotta-deep: #B4502A;
+  --color-gold-accent: #D99A3E;
+  /* Dark bronze for small gold-family text on light surfaces — #D99A3E on
+     #F8F3F0 is 2.21:1 (fails WCAG AA); this is 5.12:1. Added 2026-10-01. */
+  --color-gold-bronze: #8C5E14;
+  --color-success-jade: #2D6A4F;
+
+  /* Neutrals & Surfaces */
+  --color-ink: #171310;
+  --color-ink-soft: #2b241d;
+  --color-smoke: #6f6455;
+  --color-ivory: #f7f2e9;
+  --color-sand: #efe5d2;
+  --color-linen: #fbf8f1;
+  --color-saffron: #e87522;
+  --color-flame: #c2451e;
+  --color-gold: #c9a24b;
+  --color-leaf: #21543f;
+  --color-ink-midnight: #0F131A;
+  --color-ink-charcoal: #181D27;
+  --color-ink-slate: #252B37;
+  --color-surface: #fdf8f5;
+  --color-ivory-surface: #FDF8F5;
+  --color-sandstone-wash: #F5EBE1;
+  --color-border-warm: #E9DFD5;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f8f3f0;
+  --color-surface-container: #f2edea;
+  --color-surface-container-high: #ece7e4;
+  --color-surface-container-highest: #e6e2df;
+  --color-surface-bright: #fdf8f5;
+  --color-primary-foreground: #ffffff;
+  --color-muted: #f2edea;
+  --color-muted-foreground: #57423b;
+  --color-accent: #f2edea;
+  --color-accent-foreground: #1c1b1a;
+  --color-surface-dim: #ded9d6;
+  --color-surface-variant: #e6e2df;
+  --color-surface-tint: #a23e18;
+  --color-background: #fdf8f5;
+  --color-foreground: #1c1b1a;
+  --color-on-background: #1c1b1a;
+  --color-on-surface: #1c1b1a;
+  --color-on-surface-variant: #57423b;
+  --color-outline: #8a726a;
+  --color-outline-variant: #dec0b7;
+
+  /* Secondary & Tertiary */
+  --color-secondary: #595e6a;
+  --color-secondary-container: #dbdfed;
+  --color-secondary-fixed: #dee2f0;
+  --color-secondary-fixed-dim: #c2c6d4;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #5e636e;
+  --color-on-secondary-fixed: #171c26;
+  --color-on-secondary-fixed-variant: #424752;
+
+  --color-tertiary: #964416;
+  --color-tertiary-container: #b55b2d;
+  --color-tertiary-fixed: #ffdbcc;
+  --color-tertiary-fixed-dim: #ffb694;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-container: #fffbff;
+  --color-on-tertiary-fixed: #351000;
+  --color-on-tertiary-fixed-variant: #7a2f01;
+
+  --color-inverse-surface: #32302e;
+  --color-inverse-on-surface: #f5f0ed;
+  --color-inverse-primary: #ffb59c;
+
+  /* Error & Alerts */
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error: #ffffff;
+  --color-on-error-container: #93000a;
+
+  /* Typography */
+  --font-headline-hero: "EB Garamond", serif;
+  --font-headline-hero-mobile: "EB Garamond", serif;
+  --font-headline-lg: "EB Garamond", serif;
+  --font-headline-lg-mobile: "EB Garamond", serif;
+  --font-headline-md: "EB Garamond", serif;
+  --font-headline-sm: "EB Garamond", serif;
+  --font-price-display: "EB Garamond", serif;
+
+  --font-body-lg: "Plus Jakarta Sans", sans-serif;
+  --font-body-md: "Plus Jakarta Sans", sans-serif;
+  --font-body-sm: "Plus Jakarta Sans", sans-serif;
+  --font-title-lg: "Plus Jakarta Sans", sans-serif;
+  --font-title-md: "Plus Jakarta Sans", sans-serif;
+  --font-label-lg: "Plus Jakarta Sans", sans-serif;
+  --font-label-caps: "Plus Jakarta Sans", sans-serif;
+
+  /* Google Mobile Usability & Refined Editorial Typography Tokens (Updated 2026-10-27) */
+  --text-headline-hero: 36px;
+  --text-headline-hero--line-height: 44px;
+  --text-headline-hero-mobile: 28px;
+  --text-headline-hero-mobile--line-height: 34px;
+  --text-headline-lg: 28px;
+  --text-headline-lg--line-height: 36px;
+  --text-headline-lg-mobile: 24px;
+  --text-headline-lg-mobile--line-height: 30px;
+  --text-headline-md: 22px;
+  --text-headline-md--line-height: 30px;
+  --text-headline-sm: 18px;
+  --text-headline-sm--line-height: 26px;
+  --text-price-display: 24px;
+  --text-price-display--line-height: 28px;
+  --text-title-lg: 18px;
+  --text-title-lg--line-height: 24px;
+  --text-title-md: 16px;
+  --text-title-md--line-height: 22px;
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 28px;
+  --text-body-md: 16px;
+  --text-body-md--line-height: 26px;
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 22px;
+  --text-label-lg: 15px;
+  --text-label-lg--line-height: 20px;
+  --text-label-caps: 12px;
+  --text-label-caps--line-height: 16px;
+
+  /* Type-scale infill — added 2026-10-01 (typography sync).
+     Named tokens absorbing ad-hoc text-[Npx] usages found across the app.
+     Prefer the primary scale above for new work. */
+  --text-label-md: 11px;
+  --text-label-md--line-height: 14px;
+  --text-headline-card: 18px;
+  --text-headline-card--line-height: 24px;
+  --text-display-watermark: 160px;
+  --text-display-watermark--line-height: 160px;
+  /* Icon glyph sizes — Material Symbols are sized via font-size; these keep
+     icon sizing on named tokens instead of text-[Npx] arbitrary values. */
+  --text-icon-11: 11px;
+  --text-icon-13: 13px;
+  --text-icon-14: 14px;
+  --text-icon-15: 15px;
+  --text-icon-16: 16px;
+  --text-icon-17: 17px;
+  --text-icon-18: 18px;
+  --text-icon-20: 20px;
+  --text-icon-22: 22px;
+  --text-icon-24: 24px;
+  --text-icon-26: 26px;
+  --text-icon-28: 28px;
+  --text-icon-32: 32px;
+  --text-icon-36: 36px;
+  --text-icon-48: 48px;
+
+  /* Tightened Spacing Tokens (-20% reduction) */
+  --spacing-space-xs: 0.2rem;
+  --spacing-space-sm: 0.3rem;
+  --spacing-space-md: 0.5rem;
+  --spacing-space-lg: 0.8rem;
+  --spacing-space-xl: 1.2rem;
+  --spacing-space-2xl: 1.6rem;
+  --spacing-space-3xl: 2.4rem;
+  --spacing-gutter: 0.8rem;
+  --spacing-gutter-mobile: 0.6rem;
+  --spacing-margin: 1.4rem;
+  --spacing-margin-mobile: 0.8rem;
+}
+
+/* Infinite Marquee Roller Animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Material Symbols optical styling support */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: 'liga';
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Google Mobile Accessibility Touch Targets & Typography Baseline (Phases 2 & 3) */
+:root {
+  --font-base-size: 16px;
+}
+
+html {
+  font-size: var(--font-base-size, 16px);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Touch Target Minimum Dimensions (Google Mobile-First Requirement: min 48px height) */
+.cta-button,
+.nav-link-mobile,
+a.button,
+button.button,
+.btn-primary,
+.btn-gold,
+.hero-actions a {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+

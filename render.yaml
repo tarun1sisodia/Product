@@ -1,0 +1,68 @@
+services:
+  - type: web
+    name: skb-baghel-api
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /ready
+    preDeployCommand: node dist/db/migrate.js
+    autoDeploy: true
+    # Only trigger a new Render deploy when backend code or this file changes.
+    # Changes to react/ or admin/ will not cause a backend redeploy.
+    buildFilter:
+      paths:
+        - backend/**
+        - render.yaml
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://agraskbagheltourandtravels.com,https://www.agraskbagheltourandtravels.com,https://admin.agraskbagheltourandtravels.com,https://skbagheltravels-admin.coccoder999.workers.dev,https://skbagheltravels-customer.coccoder999.workers.dev
+      - key: ALLOW_TEST_AUTH
+        value: "false"
+      - key: API_BASE_URL
+        sync: false
+      - key: FARE_RULES_VERSION
+        value: 2026-09-13
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: CATALOG_MEDIA_BUCKET
+        value: documents
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_REGION
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+      - key: LOCATIONIQ_TOKEN
+        sync: false
+      - key: WHATSAPP_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: bookings@agraskbagheltourandtravels.com
+      - key: PAGES_DEPLOY_HOOK_URL
+        sync: false
+      - key: CLOUDFLARE_DEPLOY_HOOK_URL
+        sync: false
+      - key: DEPLOY_CALLBACK_SECRET
+        sync: false
