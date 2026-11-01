@@ -1,0 +1,60 @@
+# Canonical legal URLs
+/en/privacy /privacy-policy/ 301
+/en/privacy/ /privacy-policy/ 301
+/en/terms /terms-and-conditions/ 301
+/en/terms/ /terms-and-conditions/ 301
+
+# Canonical root homepage
+/en / 301
+/en/ / 301
+
+# Legacy production sitemap URL; consolidate to the canonical route page
+/en/agra-to-mathura-taxi-service /en/agra-to-mathura-taxi/ 301
+/en/agra-to-mathura-taxi-service/ /en/agra-to-mathura-taxi/ 301
+
+# Legacy duplicate route aliases consolidated to canonical rich routes
+/en/agra-to-delhi /en/agra-to-delhi-taxi/ 301
+/en/agra-to-delhi/ /en/agra-to-delhi-taxi/ 301
+/en/agra-to-delhi-airport-cab-booking /en/agra-to-delhi-airport-taxi/ 301
+/en/agra-to-delhi-airport-cab-booking/ /en/agra-to-delhi-airport-taxi/ 301
+/en/agra-cantt-railway-station-taxi-service /en/agra-cantt-station-transfer/ 301
+/en/agra-cantt-railway-station-taxi-service/ /en/agra-cantt-station-transfer/ 301
+
+
+# Core non-localized routes to canonical /en/ paths
+/routes /en/routes/ 301
+/routes/ /en/routes/ 301
+/fleet /en/fleet/ 301
+/fleet/ /en/fleet/ 301
+/services /en/services/ 301
+/services/ /en/services/ 301
+/packages /en/packages/ 301
+/packages/ /en/packages/ 301
+/monuments /en/monuments/ 301
+/monuments/ /en/monuments/ 301
+/about /en/about/ 301
+/about/ /en/about/ 301
+/contact /en/contact/ 301
+/contact/ /en/contact/ 301
+/faq /en/faq/ 301
+/faq/ /en/faq/ 301
+/rent /en/taxis/rent/ 301
+/rent/ /en/taxis/rent/ 301
+/rental /en/taxis/rent/ 301
+/rental/ /en/taxis/rent/ 301
+
+# Detail entity non-localized & alias fallbacks to canonical paths
+/routes/:slug /en/:slug/ 301
+/routes/:slug/ /en/:slug/ 301
+/en/routes/:slug /en/:slug/ 301
+/en/routes/:slug/ /en/:slug/ 301
+/packages/:slug /en/packages/:slug/ 301
+/packages/:slug/ /en/packages/:slug/ 301
+/transfers/:slug /en/transfers/:slug/ 301
+/transfers/:slug/ /en/transfers/:slug/ 301
+/local-packages/:slug /en/local-packages/:slug/ 301
+/local-packages/:slug/ /en/local-packages/:slug/ 301
+/vehicles/:slug /en/vehicles/:slug/ 301
+/vehicles/:slug/ /en/vehicles/:slug/ 301
+/monuments/:slug /en/monuments/:slug/ 301
+/monuments/:slug/ /en/monuments/:slug/ 301

@@ -1,0 +1,35 @@
+__pycache__/
+*.pyc
+qa-shots/
+node_modules/
+.wrangler/
+.pages/
+dist/
+01a08958-2105-7485-8e71-c13b53ceeeba/*
+.env
+.env.*
+!.env.example
+*.zip
+
+# TestSprite generates reports, screenshots, and executable test artifacts.
+# Keep the curated inputs under testsprite/ tracked, but not generated output.
+testsprite_tests/
+TestSprite_MCP_Test_Report.*
+testsprite-results/
+.testsprite/
+
+# FreeLLMAPI Gateway & local secrets
+freellmapi/
+
+# Local IDE config
+.roo/
+test.py
+*.mp4
+# Binary image library (66 MB). Restore before building the customer site:
+#   git clone --depth 1 https://github.com/tarun1sisodia/Agra-Sk-Baghel-Tour-And-Travels.git /tmp/upstream
+#   cp -a /tmp/upstream/react/public/assets react/public/
+react/public/assets/
+
+# CI workflow files cannot be pushed by the Arena GitHub App token (workflows permission).
+# They stay on disk for local reference: .github/workflows/ci.yml, uptime.yml
+.github/workflows/

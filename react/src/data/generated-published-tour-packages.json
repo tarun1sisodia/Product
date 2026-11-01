@@ -1,0 +1,193 @@
+[
+  {
+    "id": "86643e3f-51f1-4582-b65d-3bf19889d63e",
+    "packageCode": "same-day-agra-to-mathura-tour",
+    "name": "Same Day Agra To Mathura Tour",
+    "durationText": "1 Day",
+    "days": 1,
+    "nights": 0,
+    "baseTierCode": null,
+    "startingPriceInr": 6200,
+    "fleetPrices": {
+      "city": 6200,
+      "camry": 10000,
+      "dzire": 6200,
+      "ertiga": 6500,
+      "traveller-12": 15000
+    },
+    "nightChargeInr": null,
+    "inclusionsHighlight": "Private AC Cab, Chauffeur Allowance, Fuel & State Taxes",
+    "inclusionsNote": null,
+    "source": "Agra",
+    "destination": "Mathura, Mathura, Uttar Pradesh",
+    "inclusions": [
+      "Private AC Cab dedicated exclusively to your group",
+      "Police-verified professional chauffeur & fuel charges",
+      "All highway toll taxes & state border permits",
+      "Doorstep hotel / railway station pickup & drop",
+      "Chilled packaged drinking water bottles"
+    ],
+    "exclusions": [
+      "Monument entry tickets & camera/drone permits",
+      "Meals, buffet lunches & personal snacks/dining",
+      "Chauffeur / guide discretionary tips & gratuities",
+      "Special temple VIP pooja / express darshan passes",
+      "Personal shopping & handicraft purchases"
+    ],
+    "itinerary": [],
+    "imageUrl": "/assets/places/gallery/mathura-vrindavan-01.jpg",
+    "gallery": [
+      {
+        "url": "/assets/places/gallery/mathura-vrindavan-01.jpg",
+        "alt": "Prem Mandir illuminated at night",
+        "caption": "Prem Mandir & Banke Bihari illumination",
+        "sortOrder": 0
+      },
+      {
+        "url": "/assets/places/gallery/taj-mahal-01.jpg",
+        "alt": "Taj Mahal dawn reflection Agra",
+        "caption": "Taj Mahal reflection pool at dawn",
+        "sortOrder": 1
+      }
+    ],
+    "status": "published",
+    "isActive": true,
+    "createdAt": "2026-10-23T11:46:23.671Z",
+    "updatedAt": "2026-10-23T12:22:04.516Z",
+    "upgrades": [],
+    "slug": "same-day-agra-to-mathura-tour",
+    "image": "/assets/places/gallery/mathura-vrindavan-01.jpg"
+  },
+  {
+    "id": "6b042408-f4f0-46a2-b17a-c8e4f90e960e",
+    "packageCode": "himachal-tour-2-day",
+    "name": "Himachal Tour 2 Day",
+    "durationText": "2 Day",
+    "days": 2,
+    "nights": 1,
+    "baseTierCode": null,
+    "startingPriceInr": 20000,
+    "fleetPrices": {
+      "ertiga": 20000,
+      "traveller-12": 40000
+    },
+    "nightChargeInr": null,
+    "inclusionsHighlight": "Private AC Cab, Chauffeur Allowance, Fuel & State Taxes",
+    "inclusionsNote": null,
+    "source": "Agra",
+    "destination": "",
+    "inclusions": [
+      "Private AC Cab dedicated exclusively to your group",
+      "Police-verified professional chauffeur & fuel charges",
+      "All highway toll taxes & state border permits",
+      "Doorstep hotel / railway station pickup & drop",
+      "Chilled packaged drinking water bottles"
+    ],
+    "exclusions": [
+      "Monument entry tickets & camera/drone permits",
+      "Meals, buffet lunches & personal snacks/dining",
+      "Chauffeur / guide discretionary tips & gratuities"
+    ],
+    "itinerary": [],
+    "imageUrl": "/api/v1/tour-packages/media/dea3dc6c-b29e-4d6b-b68d-7b3fedb50fff.webp",
+    "gallery": [
+      {
+        "url": "https://api.agraskbagheltourandtravels.com/api/v1/tour-packages/media/959515a3-d370-4dd0-84a9-9a5d88724323.webp",
+        "alt": "pexels balvir singh 1121494947 20848215",
+        "caption": "pexels balvir singh 1121494947 20848215",
+        "sortOrder": 0
+      },
+      {
+        "url": "https://api.agraskbagheltourandtravels.com/api/v1/tour-packages/media/dea3dc6c-b29e-4d6b-b68d-7b3fedb50fff.webp",
+        "alt": "Travel Cash Voucher Template With Watermark",
+        "caption": "Travel Cash Voucher Template With Watermark",
+        "sortOrder": 1
+      },
+      {
+        "url": "https://api.agraskbagheltourandtravels.com/api/v1/tour-packages/media/3fa119e0-9bf7-471e-b7d0-d90178e58f84.webp",
+        "alt": "pexels ibrahim poonawala 53441506 8046592",
+        "caption": "pexels ibrahim poonawala 53441506 8046592",
+        "sortOrder": 2
+      },
+      {
+        "url": "https://api.agraskbagheltourandtravels.com/api/v1/tour-packages/media/d224ba80-c878-4c3a-a56f-9b1e30ba5784.webp",
+        "alt": "pexels chalta phirta 307182428 15404469",
+        "caption": "pexels chalta phirta 307182428 15404469",
+        "sortOrder": 3
+      }
+    ],
+    "status": "published",
+    "isActive": true,
+    "createdAt": "2026-10-24T14:48:26.922Z",
+    "updatedAt": "2026-10-24T14:50:54.456Z",
+    "upgrades": [],
+    "slug": "himachal-tour-2-day",
+    "image": "https://api.agraskbagheltourandtravels.com/api/v1/tour-packages/media/dea3dc6c-b29e-4d6b-b68d-7b3fedb50fff.webp"
+  },
+  {
+    "id": "60423a16-4df0-4424-b77a-c7b7b8d13360",
+    "packageCode": "exclusive-tour-of-agra-for-1-day",
+    "name": "Exclusive Tour of Agra for 1 Day",
+    "durationText": "1 Day",
+    "days": 1,
+    "nights": 0,
+    "baseTierCode": null,
+    "startingPriceInr": 5000,
+    "fleetPrices": {
+      "dzire": 5000,
+      "ertiga": 6500
+    },
+    "nightChargeInr": null,
+    "inclusionsHighlight": "Ram bagh, Sikandra, Taj Mahal, Agra Fort, Sahid Park",
+    "inclusionsNote": null,
+    "source": "Agra",
+    "destination": "Agra, Agra, Uttar Pradesh",
+    "inclusions": [
+      "Private AC Cab dedicated exclusively to your group",
+      "Police-verified professional chauffeur & fuel charges",
+      "All highway toll taxes & state border permits",
+      "Doorstep hotel / railway station pickup & drop",
+      "Chilled packaged drinking water bottles"
+    ],
+    "exclusions": [
+      "Monument entry tickets & camera/drone permits",
+      "Meals, buffet lunches & personal snacks/dining",
+      "Chauffeur / guide discretionary tips & gratuities"
+    ],
+    "itinerary": [],
+    "imageUrl": "/api/v1/tour-packages/media/b191edb7-ffcd-4d8d-bc5d-876fd9fc3031.jpg",
+    "gallery": [
+      {
+        "url": "https://api.agraskbagheltourandtravels.com/api/v1/tour-packages/media/b191edb7-ffcd-4d8d-bc5d-876fd9fc3031.jpg",
+        "alt": "pexels akshatrai 5367202",
+        "caption": "pexels akshatrai 5367202",
+        "sortOrder": 0
+      },
+      {
+        "url": "https://api.agraskbagheltourandtravels.com/api/v1/tour-packages/media/86e949ef-5ab8-4af8-95dc-91d6ea98c503.webp",
+        "alt": "pexels balvir singh 1121494947 20848215",
+        "caption": "pexels balvir singh 1121494947 20848215",
+        "sortOrder": 1
+      },
+      {
+        "url": "https://api.agraskbagheltourandtravels.com/api/v1/tour-packages/media/45829528-dcb6-432f-b6b0-3955e914b378.webp",
+        "alt": "pexels chalta phirta 307182428 15404469",
+        "caption": "pexels chalta phirta 307182428 15404469",
+        "sortOrder": 2
+      },
+      {
+        "url": "https://api.agraskbagheltourandtravels.com/api/v1/tour-packages/media/0117f81d-504c-44d6-9f47-156afe1afad0.webp",
+        "alt": "pexels ibrahim poonawala 53441506 8046592",
+        "caption": "pexels ibrahim poonawala 53441506 8046592",
+        "sortOrder": 3
+      }
+    ],
+    "status": "published",
+    "isActive": true,
+    "createdAt": "2026-10-25T14:21:28.695Z",
+    "updatedAt": "2026-10-25T14:21:36.118Z",
+    "upgrades": [],
+    "slug": "exclusive-tour-of-agra-for-1-day",
+    "image": "https://api.agraskbagheltourandtravels.com/api/v1/tour-packages/media/b191edb7-ffcd-4d8d-bc5d-876fd9fc3031.jpg"
+  }
+]
