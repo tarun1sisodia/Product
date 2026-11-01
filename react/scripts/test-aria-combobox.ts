@@ -57,7 +57,7 @@ async function runAriaTests() {
     // 4. Source Code ARIA Contract Audit
     console.log("▶ Auditing Source Code for ARIA 1.2 Keyboard & Focus Contract...");
     const fs = await import("node:fs");
-    const sourceCode = fs.readFileSync("/home/bot/Internship/ArenaAI/react/src/components/search/LocationCombobox.tsx", "utf-8");
+    const sourceCode = fs.readFileSync(new URL("../src/components/search/LocationCombobox.tsx", import.meta.url), "utf-8");
 
     // ARIA 1.2 attributes in dropdown
     assert.ok(sourceCode.includes('aria-autocomplete="list"'), "Input must declare aria-autocomplete='list'");

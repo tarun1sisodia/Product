@@ -19,7 +19,10 @@
     "seo:strict-build": "SEO_STRICT=1 npm run build",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
-    "react:preview": "vite preview"
+    "react:preview": "vite preview",
+    "test": "npm run test:unit && npm run test:components",
+    "test:unit": "tsx --test scripts/*.test.ts",
+    "test:components": "tsx scripts/test-combobox.ts && tsx scripts/test-aria-combobox.ts && tsx scripts/test-custom-distance.ts && tsx scripts/test-distance.ts && tsx scripts/test-locationiq.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",
@@ -39,6 +42,7 @@
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.2",
     "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.2",
     "vite": "^7.1.3"
   }

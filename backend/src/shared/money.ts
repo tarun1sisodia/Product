@@ -16,16 +16,19 @@ export function roundRupees(amount: number): number {
 }
 
 /**
- * Advance deposit: 28% of total, rounded to the nearest ₹100, minimum ₹500,
+ * Advance deposit: configured percentage (28% by default) of total, rounded to the nearest ₹100, minimum ₹500,
  * never more than the total fare.
  * Edge cases:
  * - total < 500: advance = total (customer pays full)
  * - total * 0.28 < 500: advance = 500 unless total <500
  * - rounding to nearest 100
  */
-export function advanceOf(totalFare: number): number {
+export function advanceOf(totalFare: number, advancePercent = 28): number {
   if (!Number.isFinite(totalFare) || totalFare <= 0) throw new Error("Invalid totalFare");
-  const raw = Math.max(500, Math.round((totalFare * 0.28) / 100) * 100);
+  if (!Number.isFinite(advancePercent) || advancePercent <= 0 || advancePercent > 100) {
+    throw new Error("Invalid advancePercent");
+  }
+  const raw = Math.max(500, Math.round((totalFare * advancePercent) / 10000) * 100);
   return Math.min(totalFare, raw);
 }
 

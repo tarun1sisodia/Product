@@ -1,5 +1,8 @@
 import type { VehicleGroupCode } from "../../src/contracts/fare-system.js";
 
+// Historical scenario matrix intentionally exercises explicit 20% / 20:00–06:00
+// admin overrides. Production-default policy is independently covered by
+// advance-policy.test.ts and night-policy.test.ts; do not treat these as defaults.
 export const FIXTURE_SETTINGS = {
   advance_percent: 20,
   min_km_per_day: 300,

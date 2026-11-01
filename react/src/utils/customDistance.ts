@@ -195,10 +195,10 @@ export function isHillyTerrain(
 }
 
 /**
- * Checks if a pickup time string (HH:MM) falls into the night allowance window (20:00 to 06:00).
+ * Checks if a pickup time string (HH:MM) falls into the night allowance window (22:00 to 05:00).
  */
 export function checkIsNightPickup(timeStr?: string): boolean {
-  if (!timeStr) return false;
+  if (!timeStr || !/^([01]\d|2[0-3]):[0-5]\d$/.test(timeStr)) return false;
   const hour = parseInt(timeStr.split(":")[0], 10);
   if (Number.isNaN(hour)) return false;
   return hour >= outstationRules.nightStartHour || hour < outstationRules.nightEndHour;
@@ -417,7 +417,7 @@ export function estimateVehicleFare(
       : `Tolls & parking billed at actual receipts during round-trip journey`;
 
   const driverAllowanceText = isNight
-    ? `₹${nightAllowance} Night Allowance applied (Pickup between 20:00 and 06:00)`
+    ? `₹${nightAllowance} Night Allowance applied (Pickup between 22:00 and 05:00)`
     : `Driver day allowance & fuel included`;
 
   const advancePolicyText = `₹${advanceDeposit.toLocaleString("en-IN")} online booking lock-in (28%); balance ₹${remainingChauffeurBalance.toLocaleString("en-IN")} paid directly to chauffeur`;

@@ -1,6 +1,7 @@
-import { API_BASE_URL, formatResult } from "./common.mjs";
+import { assertVerificationTarget, API_BASE_URL, formatResult } from "./common.mjs";
 
 export async function runLegacySafetyVerification(targetUrl = API_BASE_URL) {
+  assertVerificationTarget(targetUrl);
   console.log("\n\x1b[1m\x1b[33m=== RUNNING LEGACY DECOMMISSION SAFETY VERIFICATION ===\x1b[0m");
   console.log(`Target API: ${targetUrl}`);
 
@@ -47,6 +48,7 @@ export async function runLegacySafetyVerification(targetUrl = API_BASE_URL) {
       body: JSON.stringify({}),
     });
     const deprecated = res.headers.get("X-API-Deprecated") || res.headers.get("Deprecation");
+    if (!deprecated && res.status !== 404) throw new Error("Missing Deprecation header on legacy endpoint");
     return res.status === 404 ? "Endpoint already decommissioned (404)" : `Deprecation flag verified (HTTP ${res.status})`;
   });
 
@@ -58,6 +60,7 @@ export async function runLegacySafetyVerification(targetUrl = API_BASE_URL) {
       body: JSON.stringify({}),
     });
     const deprecated = res.headers.get("X-API-Deprecated") || res.headers.get("Deprecation");
+    if (!deprecated && res.status !== 404) throw new Error("Missing Deprecation header on legacy endpoint");
     return res.status === 404 ? "Endpoint already decommissioned (404)" : `Deprecation flag verified (HTTP ${res.status})`;
   });
 
@@ -77,7 +80,9 @@ export async function runLegacySafetyVerification(targetUrl = API_BASE_URL) {
 }
 
 if (process.argv[1]?.endsWith("test-legacy-safety.mjs")) {
-  runLegacySafetyVerification().catch((e) => {
+  runLegacySafetyVerification().then(({ passedCount, totalCount }) => {
+    if (totalCount === 0 || passedCount !== totalCount) process.exitCode = 1;
+  }).catch((e) => {
     console.error("Verification execution error:", e);
     process.exit(1);
   });

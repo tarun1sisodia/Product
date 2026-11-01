@@ -15,6 +15,9 @@ import {
   FIXTURE_FIXED_PRODUCTS,
 } from "../fixtures/fare-fixture.js";
 
+// Advance expectations use BACKEND_RULES Law 2: nearest ₹100 and minimum ₹500.
+// These scenarios retain explicit 20% overrides to cover configurable rates;
+// advance-policy.test.ts independently checks the production default of 28%.
 describe("Fare Engine Unit Tests", () => {
   const MON_10_00_IST = "2026-10-12T10:00:00+05:30";
 
@@ -100,13 +103,13 @@ describe("Fare Engine Unit Tests", () => {
     it("OW-02: HC DEL", () => {
       const q = quoteOneWay("HC", "DEL");
       expect(q.total).toBe(3100);
-      expect(q.advance).toBe(620);
+      expect(q.advance).toBe(600);
     });
 
     it("OW-03: ER DEL", () => {
       const q = quoteOneWay("ER", "DEL");
       expect(q.total).toBe(3600);
-      expect(q.advance).toBe(720);
+      expect(q.advance).toBe(700);
     });
 
     it("OW-04: IC DEL", () => {
@@ -118,13 +121,13 @@ describe("Fare Engine Unit Tests", () => {
     it("OW-05: FO DEL", () => {
       const q = quoteOneWay("FO", "DEL");
       expect(q.total).toBe(6800);
-      expect(q.advance).toBe(1360);
+      expect(q.advance).toBe(1400);
     });
 
     it("OW-06: CA DEL", () => {
       const q = quoteOneWay("CA", "DEL");
       expect(q.total).toBe(9800);
-      expect(q.advance).toBe(1960);
+      expect(q.advance).toBe(2000);
     });
 
     it("OW-07: VE DEL", () => {
@@ -153,35 +156,35 @@ describe("Fare Engine Unit Tests", () => {
 
     it("OW-11: DZ, ER, IC, T12 on MAT", () => {
       expect(quoteOneWay("DZ", "MAT").total).toBe(1200);
-      expect(quoteOneWay("DZ", "MAT").advance).toBe(240);
+      expect(quoteOneWay("DZ", "MAT").advance).toBe(500);
       expect(quoteOneWay("ER", "MAT").total).toBe(1700);
-      expect(quoteOneWay("ER", "MAT").advance).toBe(340);
+      expect(quoteOneWay("ER", "MAT").advance).toBe(500);
       expect(quoteOneWay("IC", "MAT").total).toBe(2300);
-      expect(quoteOneWay("IC", "MAT").advance).toBe(460);
+      expect(quoteOneWay("IC", "MAT").advance).toBe(500);
       expect(quoteOneWay("T12", "MAT").total).toBe(3800);
-      expect(quoteOneWay("T12", "MAT").advance).toBe(760);
+      expect(quoteOneWay("T12", "MAT").advance).toBe(800);
     });
 
     it("OW-12: DZ, ER, IC, UR on JAI", () => {
       expect(quoteOneWay("DZ", "JAI").total).toBe(2900);
-      expect(quoteOneWay("DZ", "JAI").advance).toBe(580);
+      expect(quoteOneWay("DZ", "JAI").advance).toBe(600);
       expect(quoteOneWay("ER", "JAI").total).toBe(4100);
-      expect(quoteOneWay("ER", "JAI").advance).toBe(820);
+      expect(quoteOneWay("ER", "JAI").advance).toBe(800);
       expect(quoteOneWay("IC", "JAI").total).toBe(5300);
-      expect(quoteOneWay("IC", "JAI").advance).toBe(1060);
+      expect(quoteOneWay("IC", "JAI").advance).toBe(1100);
       expect(quoteOneWay("UR", "JAI").total).toBe(12000);
       expect(quoteOneWay("UR", "JAI").advance).toBe(2400);
     });
 
     it("OW-13: GWA and LKO routes", () => {
       expect(quoteOneWay("DZ", "GWA").total).toBe(1700);
-      expect(quoteOneWay("DZ", "GWA").advance).toBe(340);
+      expect(quoteOneWay("DZ", "GWA").advance).toBe(500);
       expect(quoteOneWay("HC", "GWA").total).toBe(2100);
-      expect(quoteOneWay("HC", "GWA").advance).toBe(420);
+      expect(quoteOneWay("HC", "GWA").advance).toBe(500);
       expect(quoteOneWay("DZ", "LKO").total).toBe(4200);
-      expect(quoteOneWay("DZ", "LKO").advance).toBe(840);
+      expect(quoteOneWay("DZ", "LKO").advance).toBe(800);
       expect(quoteOneWay("T12", "LKO").total).toBe(9800);
-      expect(quoteOneWay("T12", "LKO").advance).toBe(1960);
+      expect(quoteOneWay("T12", "LKO").advance).toBe(2000);
     });
 
     it("OW-14: Cars not offered on MAT throw VEHICLE_NOT_AVAILABLE", () => {
@@ -334,10 +337,10 @@ describe("Fare Engine Unit Tests", () => {
     const MON_20_00 = "2026-10-12T20:00:00+05:30";
     const TUE_20_00 = "2026-10-13T20:00:00+05:30";
 
-    it("RT-01: DZ DEL same day -> 5100 (adv 1020)", () => {
+    it("RT-01: DZ DEL same day -> 5100 (adv 1000)", () => {
       const q = quoteRoundTrip("DZ", "DEL", MON_08_00, MON_20_00);
       expect(q.total).toBe(5100);
-      expect(q.advance).toBe(1020);
+      expect(q.advance).toBe(1000);
     });
 
     it("RT-02: DZ MAT same day -> 3500 (adv 700)", () => {
@@ -352,28 +355,28 @@ describe("Fare Engine Unit Tests", () => {
       expect(q.advance).toBe(1400);
     });
 
-    it("RT-04: DZ LKO 2 days -> 7700 (adv 1540)", () => {
+    it("RT-04: DZ LKO 2 days -> 7700 (adv 1500)", () => {
       const q = quoteRoundTrip("DZ", "LKO", MON_08_00, TUE_20_00);
       expect(q.total).toBe(7700);
-      expect(q.advance).toBe(1540);
+      expect(q.advance).toBe(1500);
     });
 
-    it("RT-05: IC JAI 2 days -> 11800 (adv 2360)", () => {
+    it("RT-05: IC JAI 2 days -> 11800 (adv 2400)", () => {
       const q = quoteRoundTrip("IC", "JAI", MON_08_00, TUE_20_00);
       expect(q.total).toBe(11800);
-      expect(q.advance).toBe(2360);
+      expect(q.advance).toBe(2400);
     });
 
-    it("RT-06: IC JAI same day -> 9140 (adv 1828)", () => {
+    it("RT-06: IC JAI same day -> 9140 (adv 1800)", () => {
       const q = quoteRoundTrip("IC", "JAI", MON_08_00, MON_20_00);
       expect(q.total).toBe(9140);
-      expect(q.advance).toBe(1828);
+      expect(q.advance).toBe(1800);
     });
 
-    it("RT-07: ER DEL 2 days -> 9400 (adv 1880)", () => {
+    it("RT-07: ER DEL 2 days -> 9400 (adv 1900)", () => {
       const q = quoteRoundTrip("ER", "DEL", MON_08_00, TUE_20_00);
       expect(q.total).toBe(9400);
-      expect(q.advance).toBe(1880);
+      expect(q.advance).toBe(1900);
     });
 
     it("RT-08: CA JAI 2 days -> 25000 (adv 5000)", () => {
@@ -382,40 +385,40 @@ describe("Fare Engine Unit Tests", () => {
       expect(q.advance).toBe(5000);
     });
 
-    it("RT-09: HC GWA same day -> 4400 (adv 880)", () => {
+    it("RT-09: HC GWA same day -> 4400 (adv 900)", () => {
       const q = quoteRoundTrip("HC", "GWA", MON_08_00, MON_20_00);
       expect(q.total).toBe(4400);
-      expect(q.advance).toBe(880);
+      expect(q.advance).toBe(900);
     });
 
-    it("RT-10: T12 DEL same day -> 12200 (adv 2440)", () => {
+    it("RT-10: T12 DEL same day -> 12200 (adv 2400)", () => {
       const q = quoteRoundTrip("T12", "DEL", MON_08_00, MON_20_00);
       expect(q.total).toBe(12200);
-      expect(q.advance).toBe(2440);
+      expect(q.advance).toBe(2400);
     });
 
-    it("RT-11: T12 MAT same day -> 8200 (adv 1640)", () => {
+    it("RT-11: T12 MAT same day -> 8200 (adv 1600)", () => {
       const q = quoteRoundTrip("T12", "MAT", MON_08_00, MON_20_00);
       expect(q.total).toBe(8200);
-      expect(q.advance).toBe(1640);
+      expect(q.advance).toBe(1600);
     });
 
-    it("RT-12: T12 LKO 2 days -> 18150 (adv 3630)", () => {
+    it("RT-12: T12 LKO 2 days -> 18150 (adv 3600)", () => {
       const q = quoteRoundTrip("T12", "LKO", MON_08_00, TUE_20_00);
       expect(q.total).toBe(18150);
-      expect(q.advance).toBe(3630);
+      expect(q.advance).toBe(3600);
     });
 
-    it("RT-13: UR DEL 2 days -> 21800 (adv 4360)", () => {
+    it("RT-13: UR DEL 2 days -> 21800 (adv 4400)", () => {
       const q = quoteRoundTrip("UR", "DEL", MON_08_00, TUE_20_00);
       expect(q.total).toBe(21800);
-      expect(q.advance).toBe(4360);
+      expect(q.advance).toBe(4400);
     });
 
-    it("RT-14: HC ODD same day (decimal rounding) -> 11168 (adv 2234)", () => {
+    it("RT-14: HC ODD same day (decimal rounding) -> 11168 (adv 2200)", () => {
       const q = quoteRoundTrip("HC", "ODD", MON_08_00, MON_20_00);
       expect(q.total).toBe(11168);
-      expect(q.advance).toBe(2234);
+      expect(q.advance).toBe(2200);
     });
 
     it("RT-15: DZ MAT, pickup Mon 18:00, return Tue 00:30 (2 IST days) -> 7000 (adv 1400)", () => {
@@ -528,12 +531,12 @@ describe("Fare Engine Unit Tests", () => {
       expect(q.total).toBe(27300);
     });
 
-    it("HL-01: Set sedan round_trip_halt_per_night 300: DZ MAT 2 days -> 7300 (adv 1460)", () => {
+    it("HL-01: Set sedan round_trip_halt_per_night 300: DZ MAT 2 days -> 7300 (adv 1500)", () => {
       const q = quoteRoundTrip("DZ", "MAT", "2026-10-12T08:00:00+05:30", "2026-10-13T20:00:00+05:30", {
         haltPerNight: 300,
       });
       expect(q.total).toBe(7300);
-      expect(q.advance).toBe(1460);
+      expect(q.advance).toBe(1500);
       expect(q.lines.find((l) => l.code === "halt_charge")?.amount).toBe(300);
     });
 
@@ -578,20 +581,20 @@ describe("Fare Engine Unit Tests", () => {
 
     it("LP-01: L-8H DZ, ER, IC, UR", () => {
       expect(quoteFixed("local_package", "L-8H", "DZ").total).toBe(1900);
-      expect(quoteFixed("local_package", "L-8H", "DZ").advance).toBe(380);
+      expect(quoteFixed("local_package", "L-8H", "DZ").advance).toBe(500);
       expect(quoteFixed("local_package", "L-8H", "ER").total).toBe(2600);
-      expect(quoteFixed("local_package", "L-8H", "ER").advance).toBe(520);
+      expect(quoteFixed("local_package", "L-8H", "ER").advance).toBe(500);
       expect(quoteFixed("local_package", "L-8H", "IC").total).toBe(3200);
-      expect(quoteFixed("local_package", "L-8H", "IC").advance).toBe(640);
+      expect(quoteFixed("local_package", "L-8H", "IC").advance).toBe(600);
       expect(quoteFixed("local_package", "L-8H", "UR").total).toBe(6000);
       expect(quoteFixed("local_package", "L-8H", "UR").advance).toBe(1200);
     });
 
     it("LP-02: L-FD DZ, ER", () => {
       expect(quoteFixed("local_package", "L-FD", "DZ").total).toBe(2800);
-      expect(quoteFixed("local_package", "L-FD", "DZ").advance).toBe(560);
+      expect(quoteFixed("local_package", "L-FD", "DZ").advance).toBe(600);
       expect(quoteFixed("local_package", "L-FD", "ER").total).toBe(3600);
-      expect(quoteFixed("local_package", "L-FD", "ER").advance).toBe(720);
+      expect(quoteFixed("local_package", "L-FD", "ER").advance).toBe(700);
     });
 
     it("LP-03: L-8H CA (no price) throws VEHICLE_NOT_AVAILABLE", () => {
@@ -600,36 +603,36 @@ describe("Fare Engine Unit Tests", () => {
 
     it("TR-01: T-CANTT DZ, ER, IC", () => {
       expect(quoteFixed("transfer", "T-CANTT", "DZ").total).toBe(500);
-      expect(quoteFixed("transfer", "T-CANTT", "DZ").advance).toBe(100);
+      expect(quoteFixed("transfer", "T-CANTT", "DZ").advance).toBe(500);
       expect(quoteFixed("transfer", "T-CANTT", "ER").total).toBe(800);
-      expect(quoteFixed("transfer", "T-CANTT", "ER").advance).toBe(160);
+      expect(quoteFixed("transfer", "T-CANTT", "ER").advance).toBe(500);
       expect(quoteFixed("transfer", "T-CANTT", "IC").total).toBe(1000);
-      expect(quoteFixed("transfer", "T-CANTT", "IC").advance).toBe(200);
+      expect(quoteFixed("transfer", "T-CANTT", "IC").advance).toBe(500);
     });
 
     it("TR-02: T-AIRPORT DZ, IC", () => {
       expect(quoteFixed("transfer", "T-AIRPORT", "DZ").total).toBe(600);
-      expect(quoteFixed("transfer", "T-AIRPORT", "DZ").advance).toBe(120);
+      expect(quoteFixed("transfer", "T-AIRPORT", "DZ").advance).toBe(500);
       expect(quoteFixed("transfer", "T-AIRPORT", "IC").total).toBe(1100);
-      expect(quoteFixed("transfer", "T-AIRPORT", "IC").advance).toBe(220);
+      expect(quoteFixed("transfer", "T-AIRPORT", "IC").advance).toBe(500);
     });
 
     it("TR-03: T-IGI DZ, IC, UR", () => {
       expect(quoteFixed("transfer", "T-IGI", "DZ").total).toBe(3200);
-      expect(quoteFixed("transfer", "T-IGI", "DZ").advance).toBe(640);
+      expect(quoteFixed("transfer", "T-IGI", "DZ").advance).toBe(600);
       expect(quoteFixed("transfer", "T-IGI", "IC").total).toBe(5200);
-      expect(quoteFixed("transfer", "T-IGI", "IC").advance).toBe(1040);
+      expect(quoteFixed("transfer", "T-IGI", "IC").advance).toBe(1000);
       expect(quoteFixed("transfer", "T-IGI", "UR").total).toBe(9500);
       expect(quoteFixed("transfer", "T-IGI", "UR").advance).toBe(1900);
     });
 
     it("TP-01: P-SUNRISE DZ, ER, IC, UR", () => {
       expect(quoteFixed("tour_package", "P-SUNRISE", "DZ").total).toBe(1500);
-      expect(quoteFixed("tour_package", "P-SUNRISE", "DZ").advance).toBe(300);
+      expect(quoteFixed("tour_package", "P-SUNRISE", "DZ").advance).toBe(500);
       expect(quoteFixed("tour_package", "P-SUNRISE", "ER").total).toBe(2200);
-      expect(quoteFixed("tour_package", "P-SUNRISE", "ER").advance).toBe(440);
+      expect(quoteFixed("tour_package", "P-SUNRISE", "ER").advance).toBe(500);
       expect(quoteFixed("tour_package", "P-SUNRISE", "IC").total).toBe(2800);
-      expect(quoteFixed("tour_package", "P-SUNRISE", "IC").advance).toBe(560);
+      expect(quoteFixed("tour_package", "P-SUNRISE", "IC").advance).toBe(600);
       expect(quoteFixed("tour_package", "P-SUNRISE", "UR").total).toBe(5500);
       expect(quoteFixed("tour_package", "P-SUNRISE", "UR").advance).toBe(1100);
     });
@@ -643,19 +646,19 @@ describe("Fare Engine Unit Tests", () => {
 
     it("TP-05: P-MATHURA DZ, IC", () => {
       expect(quoteFixed("tour_package", "P-MATHURA", "DZ").total).toBe(2400);
-      expect(quoteFixed("tour_package", "P-MATHURA", "DZ").advance).toBe(480);
+      expect(quoteFixed("tour_package", "P-MATHURA", "DZ").advance).toBe(500);
       expect(quoteFixed("tour_package", "P-MATHURA", "IC").total).toBe(3800);
-      expect(quoteFixed("tour_package", "P-MATHURA", "IC").advance).toBe(760);
+      expect(quoteFixed("tour_package", "P-MATHURA", "IC").advance).toBe(800);
     });
   });
 
   describe("12.7 Explicit Charges", () => {
-    it("EX-01: Outstation all vehicles Toll 400 -> DZ DEL is 2900 (adv 580)", () => {
+    it("EX-01: Outstation all vehicles Toll 400 -> DZ DEL is 2900 (adv 600)", () => {
       const q = quoteOneWay("DZ", "DEL", MON_10_00_IST, 20, [
         { category: "outstation", label: "Toll", amount: 400, is_active: true },
       ]);
       expect(q.total).toBe(2900);
-      expect(q.advance).toBe(580);
+      expect(q.advance).toBe(600);
     });
 
     it("EX-02: Add Parking 150 as well -> 3050, 2 lines, adv 610", () => {
@@ -664,7 +667,7 @@ describe("Fare Engine Unit Tests", () => {
         { category: "outstation", label: "Parking", amount: 150, is_active: true },
       ]);
       expect(q.total).toBe(3050);
-      expect(q.advance).toBe(610);
+      expect(q.advance).toBe(600);
       expect(q.lines.filter((l) => l.code === "extra_charge").length).toBe(2);
     });
 
@@ -692,15 +695,15 @@ describe("Fare Engine Unit Tests", () => {
       expect(quoteOneWay("DZ", "DEL", MON_10_00_IST, 20, inactiveToll).total).toBe(2500);
     });
 
-    it("EX-07: DZ DEL pickup 21:00 + Toll 400 -> 3150 (adv 630)", () => {
+    it("EX-07: DZ DEL pickup 21:00 + Toll 400 -> 3150 (adv 600)", () => {
       const q = quoteOneWay("DZ", "DEL", "2026-10-12T21:00:00+05:30", 20, [
         { category: "outstation", label: "Toll", amount: 400, is_active: true },
       ]);
       expect(q.total).toBe(3150);
-      expect(q.advance).toBe(630);
+      expect(q.advance).toBe(600);
     });
 
-    it("EX-08: Local L-8H, all vehicles: Parking 100 -> DZ 2000 (adv 400)", () => {
+    it("EX-08: Local L-8H, all vehicles: Parking 100 -> DZ 2000 (adv 500)", () => {
       const car = FIXTURE_CARS.DZ;
       const product = FIXTURE_FIXED_PRODUCTS.local_package["L-8H"];
       const q = calculateFixedProduct({
@@ -712,7 +715,7 @@ describe("Fare Engine Unit Tests", () => {
         extraCharges: [{ category: "local_package", label: "Parking", amount: 100, is_active: true }],
       });
       expect(q.total).toBe(2000);
-      expect(q.advance).toBe(400);
+      expect(q.advance).toBe(500);
     });
 
     it("EX-09: Outstation toll does not apply to Local L-8H", () => {
@@ -729,7 +732,7 @@ describe("Fare Engine Unit Tests", () => {
       expect(q.total).toBe(1900);
     });
 
-    it("EX-10: Transfer T-AIRPORT Airport entry 50 -> DZ 650 (adv 130)", () => {
+    it("EX-10: Transfer T-AIRPORT Airport entry 50 -> DZ 650 (adv 500)", () => {
       const car = FIXTURE_CARS.DZ;
       const product = FIXTURE_FIXED_PRODUCTS.transfer["T-AIRPORT"];
       const q = calculateFixedProduct({
@@ -741,7 +744,7 @@ describe("Fare Engine Unit Tests", () => {
         extraCharges: [{ category: "transfer", transfer_id: product.id, label: "Airport entry", amount: 50, is_active: true }],
       });
       expect(q.total).toBe(650);
-      expect(q.advance).toBe(130);
+      expect(q.advance).toBe(500);
     });
 
     it("EX-11: Tour P-SUNRISE Parking 200 scoped to suv -> ER 2400, DZ 1500", () => {
@@ -771,12 +774,12 @@ describe("Fare Engine Unit Tests", () => {
       expect(qDz.total).toBe(1500);
     });
 
-    it("EX-12: DZ MAT 2-day round trip + Toll 400 -> 7400 (flat, not per day, adv 1480)", () => {
+    it("EX-12: DZ MAT 2-day round trip + Toll 400 -> 7400 (flat, not per day, adv 1500)", () => {
       const q = quoteRoundTrip("DZ", "MAT", "2026-10-12T08:00:00+05:30", "2026-10-13T20:00:00+05:30", {
         extraCharges: [{ category: "outstation", label: "Toll", amount: 400, is_active: true }],
       });
       expect(q.total).toBe(7400);
-      expect(q.advance).toBe(1480);
+      expect(q.advance).toBe(1500);
     });
   });
 
@@ -795,17 +798,17 @@ describe("Fare Engine Unit Tests", () => {
       expect(q.balance).toBe(0);
     });
 
-    it("AD-04: 1%, total 2500 -> 25", () => {
+    it("AD-04: 1%, total 2500 -> minimum advance 500", () => {
       const q = quoteOneWay("DZ", "DEL", MON_10_00_IST, 1);
-      expect(q.advance).toBe(25);
-      expect(q.balance).toBe(2475);
+      expect(q.advance).toBe(500);
+      expect(q.balance).toBe(2000);
     });
 
     it("AD-05: 25%, total 7503 -> 1875.75 -> 1876", () => {
       expect(roundHalfUp((7503 * 25) / 100)).toBe(1876);
     });
 
-    it("AD-06: Finalizer unit test: total 1502, 25% -> 375.5 -> 376 (exact .5 rounds up)", () => {
+    it("AD-06: Integer rounding utility: total 1502, 25% -> 375.5 -> 376 (exact .5 rounds up)", () => {
       expect(roundHalfUp((1502 * 25) / 100)).toBe(376);
     });
 
@@ -814,8 +817,14 @@ describe("Fare Engine Unit Tests", () => {
       const percents = [1, 20, 25, 28, 33, 50, 100];
       for (const t of totals) {
         for (const p of percents) {
-          const adv = Math.min(t, roundHalfUp((t * p) / 100));
-          const bal = t - adv;
+          const result = calculateFixedProduct({
+            category: "local_package", productId: "test-product", vehicle: FIXTURE_CARS.DZ,
+            fixedAmount: t, advancePercent: p, extraCharges: [],
+          });
+          const adv = result.advance;
+          const bal = result.balance;
+          expect(adv).toBeGreaterThanOrEqual(Math.min(500, t));
+          if (adv < t) expect(adv % 100).toBe(0);
           expect(adv).toBeLessThanOrEqual(t);
           expect(bal).toBe(t - adv);
         }

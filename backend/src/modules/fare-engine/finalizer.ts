@@ -1,5 +1,5 @@
 import type { QuoteLine, QuoteResponse, CategoryCode, VehicleGroupCode } from "../../contracts/fare-system.js";
-import { roundHalfUp } from "./rounding.js";
+import { advanceOf } from "../../shared/money.js";
 
 export interface FinalizeQuoteInput {
   category: CategoryCode;
@@ -32,7 +32,7 @@ export function finalizeQuote(input: FinalizeQuoteInput): QuoteResponse {
     throw new Error("INVALID_TOTAL_AMOUNT");
   }
 
-  const advance = Math.min(total, roundHalfUp((total * input.advancePercent) / 100));
+  const advance = advanceOf(total, input.advancePercent);
   const balance = total - advance;
 
   return {

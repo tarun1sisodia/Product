@@ -2,7 +2,7 @@
 /**
  * Monorepo Pipeline Verification Suite
  *
- * Simulates a 100% clean CI environment by purging dist/ directories,
+ * Checks clean build artifacts by purging dist/ directories,
  * then executing every verification, build, SSG pre-render, security,
  * and guardrail check across all 3 monorepo workspaces:
  * - react/ (Customer Site)
@@ -82,20 +82,23 @@ step("Typecheck Backend (Fastify / TypeScript)", () => {
   run("npm run backend:typecheck");
 });
 
-// 4. Site Configuration & Unit Tests
+// 4. Site Configuration & Deterministic Tests
+step("Run verification-tool regression tests", () => {
+  run("node --test scripts/tests/*.test.mjs");
+});
 step("Validate site configuration & canonical origin", () => {
   run("npm run customer:validate-config");
 });
 
-step("Run Backend unit tests (Vitest)", () => {
+step("Run Backend deterministic tests (Vitest)", () => {
   run("npm --prefix backend run test:ci");
 });
 
-step("Run Customer catalog sources tests", () => {
-  run("npm --prefix react run test:catalog-sources");
+step("Run all Customer unit & component tests", () => {
+  run("npm --prefix react test");
 });
 
-step("Run Admin Desk tests (Vitest)", () => {
+step("Run Admin Desk tests (Node)", () => {
   run("npm --prefix admin test");
 });
 

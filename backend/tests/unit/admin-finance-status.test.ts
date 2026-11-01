@@ -360,8 +360,16 @@ describe("Admin Finance Visibility & Booking Status Alignment", () => {
       expect(resOwner.statusCode).toBe(200);
       expect(resOwner.json().booking.ticket_id).toBe("SKB-20261018-9999");
 
-      // 4. Admin role -> 200
-      authUser = { id: "admin-id-1", role: "admin", email: "admin@example.com" };
+      // The obsolete generic admin role must not acquire unmasked access.
+      authUser = { id: "legacy-admin", role: "admin", email: "other@example.com" };
+      const resLegacyAdmin = await app.inject({
+        method: "GET",
+        url: "/api/v1/bookings/00000000-0000-0000-0000-000000000099",
+      });
+      expect(resLegacyAdmin.statusCode).toBe(403);
+
+      // 4. Canonical super_admin role -> 200
+      authUser = { id: "admin-id-1", role: "super_admin", email: "admin@example.com" };
       const resAdmin = await app.inject({
         method: "GET",
         url: "/api/v1/bookings/00000000-0000-0000-0000-000000000099",

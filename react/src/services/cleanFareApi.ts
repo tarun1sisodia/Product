@@ -310,11 +310,8 @@ export async function fetchQuote(req: QuoteRequest): Promise<QuoteResponse> {
 // 5. Create Booking
 export async function createBooking(
   req: CreateBookingRequest,
-  accessToken: string
+  accessToken: string | null = null
 ): Promise<BookingCreateResponse> {
-  if (!accessToken || !accessToken.trim()) {
-    throw new CleanFareApiError("AUTH_REQUIRED", "Please sign in to proceed with your booking.", 401);
-  }
   const parseResult = CreateBookingRequest.safeParse(req);
   if (!parseResult.success) {
     const issues = parseResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
@@ -325,9 +322,10 @@ export async function createBooking(
       parseResult.error.issues
     );
   }
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${accessToken.trim()}`,
-  };
+  // The backend alone enforces CUSTOMER_AUTH_REQUIRED_FOR_NEW_BOOKINGS.
+  const headers: Record<string, string> = accessToken?.trim()
+    ? { Authorization: `Bearer ${accessToken.trim()}` }
+    : {};
   const raw = await apiRequest<any>(
     "/api/v1/bookings",
     {

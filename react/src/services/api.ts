@@ -4,7 +4,7 @@
  */
 
 export function getApiBaseUrl(): string {
-  const envUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim().replace(/\/+$/, "");
+  const envUrl = (import.meta.env?.VITE_API_BASE_URL as string | undefined)?.trim().replace(/\/+$/, "");
   if (
     typeof window !== "undefined" &&
     (window.location.hostname === "localhost" ||

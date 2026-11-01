@@ -4,7 +4,7 @@ import type { FareRuleOverrides } from "../fare.types.js";
 
 /**
  * Checks if a given pickup datetime falls within the night window.
- * Default window is 20:00–06:00 IST (Dossier §5).
+ * Default window is 22:00–05:00 IST (BACKEND_RULES Law 2).
  * Configurable via ruleOverrides.
  */
 export function isNightPickup(
@@ -13,8 +13,8 @@ export function isNightPickup(
 ): boolean {
   try {
     const hour = hourInIst(pickupDatetime);
-    const startHour = typeof overrides?.nightStartHour === "number" ? overrides.nightStartHour : 20;
-    const endHour = typeof overrides?.nightEndHour === "number" ? overrides.nightEndHour : 6;
+    const startHour = typeof overrides?.nightStartHour === "number" ? overrides.nightStartHour : OUTSTATION_RULES.nightStartHour;
+    const endHour = typeof overrides?.nightEndHour === "number" ? overrides.nightEndHour : OUTSTATION_RULES.nightEndHour;
     return hour >= startHour || hour < endHour;
   } catch {
     // If datetime invalid, don't apply night allowance but don't crash

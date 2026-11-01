@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "SK Baghel Tour & Travels — monorepo for the customer site (react/), operations desk (admin/) and API (backend/).",
+  "description": "SK Baghel Tour & Travels \u2014 monorepo for the customer site (react/), operations desk (admin/) and API (backend/).",
   "engines": {
     "node": ">=22"
   },
@@ -39,7 +39,7 @@
     "backend:start": "npm --prefix backend run start",
     "backend:test": "npm --prefix backend test",
     "backend:typecheck": "npm --prefix backend run typecheck",
-    "test": "npm --prefix backend run test:ci && npm --prefix react run test:catalog-sources && npm --prefix admin test",
+    "test": "node --test scripts/tests/*.test.mjs && npm --prefix backend run test:ci && npm --prefix react test && npm --prefix admin test",
     "healthcheck": "node scripts/healthcheck.mjs",
     "verify:operations": "node scripts/verification/run-all-verifications.mjs",
     "verify:t1": "node scripts/network/verify-t1-headers.mjs",

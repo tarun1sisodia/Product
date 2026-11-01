@@ -108,7 +108,7 @@ This runs:
 - `admin:typecheck` — Admin typecheck
 - `backend:typecheck` — Backend typecheck
 - `customer:validate-config` — Config validation
-- `test` — Backend unit tests + catalog validation
+- `test` — Verification-tool regressions + backend deterministic tests + all customer unit/component tests + admin tests
 - `customer:seo` — SEO artifact validation
 - `build:all` — Production builds (x3)
 

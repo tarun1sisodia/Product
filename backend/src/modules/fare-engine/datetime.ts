@@ -54,17 +54,17 @@ export function calculateIstCalendarDays(pickupAt: string | Date, returnAt: stri
 
 /**
  * Evaluates whether an IST pickup time falls inside the night window.
- * Default night window: 20:00 inclusive to 06:00 exclusive.
- * 19:59 -> false, 20:00 -> true, 23:59 -> true, 00:00 -> true, 05:59 -> true, 06:00 -> false
+ * Default night window: 22:00 inclusive to 05:00 exclusive.
+ * 21:59 -> false, 22:00 -> true, 23:59 -> true, 00:00 -> true, 04:59 -> true, 05:00 -> false
  */
 export function isPickupInNightWindow(
   pickupAt: string | Date,
-  nightStartHour = 20,
-  nightEndHour = 6
+  nightStartHour = 22,
+  nightEndHour = 5
 ): boolean {
   const { hour } = getIstParts(pickupAt);
   if (nightStartHour > nightEndHour) {
-    // Crosses midnight (e.g. 20 to 6)
+    // Crosses midnight (e.g. 22 to 5)
     return hour >= nightStartHour || hour < nightEndHour;
   }
   // Same-day window (e.g. 1 to 5)
