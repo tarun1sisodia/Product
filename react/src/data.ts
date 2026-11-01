@@ -977,8 +977,8 @@ export const outstationRules = {
   minKmPerDay: 300,
   nightAllowanceCab: 300,
   nightAllowanceTempo: 500,
-  nightStartHour: 20,
-  nightEndHour: 6,
+  nightStartHour: 22,
+  nightEndHour: 5,
 } as const;
 
 export const faqs: readonly FaqItem[] = [
@@ -1010,8 +1010,8 @@ export const faqs: readonly FaqItem[] = [
     category: "night",
     question: { en: "What is the night driving allowance?", hi: "What is the night driving allowance?" },
     answer: {
-      en: "For outstation pickups between 08:00 PM (20:00) and 06:00 AM, a flat driver night allowance of ₹300 for cars and ₹500 for Tempo Travellers is added to the fare.",
-      hi: "For outstation pickups between 08:00 PM (20:00) and 06:00 AM, a flat driver night allowance of ₹300 for cars and ₹500 for Tempo Travellers is added to the fare.",
+      en: "For outstation pickups between 10:00 PM (22:00) and 05:00 AM, a flat driver night allowance of ₹300 for cars and ₹500 for Tempo Travellers is added to the fare.",
+      hi: "For outstation pickups between 10:00 PM (22:00) and 05:00 AM, a flat driver night allowance of ₹300 for cars and ₹500 for Tempo Travellers is added to the fare.",
     },
   },
   {

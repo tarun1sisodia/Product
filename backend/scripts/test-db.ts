@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 import pg from "pg";
-import { MongoClient } from "mongodb";
 import { loadEnv } from "../src/config/env.js";
 
 try {
@@ -69,55 +68,6 @@ async function checkPostgres(databaseUrl: string): Promise<DbCheckResult> {
   }
 }
 
-async function checkMongo(mongoUri: string): Promise<DbCheckResult> {
-  const start = performance.now();
-  if (!mongoUri) {
-    return {
-      name: "MongoDB Atlas",
-      success: false,
-      latencyMs: 0,
-      error: "MONGODB_URI is not defined in environment",
-    };
-  }
-
-  const client = new MongoClient(mongoUri, {
-    serverSelectionTimeoutMS: 5000,
-    connectTimeoutMS: 5000,
-  });
-
-  try {
-    await client.connect();
-    const pingResult = await client.db("admin").command({ ping: 1 });
-    let buildInfo: Record<string, unknown> = {};
-    try {
-      buildInfo = await client.db("admin").command({ buildInfo: 1 });
-    } catch {
-      // Some Atlas users lack buildInfo permissions; ping is sufficient
-    }
-
-    const latencyMs = Math.round(performance.now() - start);
-    return {
-      name: "MongoDB Atlas",
-      success: true,
-      latencyMs,
-      details: {
-        ping: pingResult.ok === 1 ? "OK" : pingResult,
-        version: buildInfo.version ?? "Connected",
-      },
-    };
-  } catch (err: unknown) {
-    const latencyMs = Math.round(performance.now() - start);
-    return {
-      name: "MongoDB Atlas",
-      success: false,
-      latencyMs,
-      error: err instanceof Error ? err.message : String(err),
-    };
-  } finally {
-    await client.close().catch(() => {});
-  }
-}
-
 async function main(): Promise<void> {
   console.log("==================================================");
   console.log("  SK Baghel Tour & Travels — Database Check");
@@ -144,25 +94,13 @@ async function main(): Promise<void> {
     console.log(`      • Error: ${pgResult.error}\n`);
   }
 
-  console.log("2. Checking MongoDB Atlas...");
-  const mongoResult = await checkMongo(env.MONGODB_URI);
-  if (mongoResult.success) {
-    console.log(`   ✅ MongoDB Connected in ${mongoResult.latencyMs}ms`);
-    console.log(`      • Ping:    ${mongoResult.details?.ping}`);
-    console.log(`      • Version: ${mongoResult.details?.version}\n`);
-  } else {
-    console.log(`   ❌ MongoDB Failed in ${mongoResult.latencyMs}ms`);
-    console.log(`      • Error: ${mongoResult.error}\n`);
-  }
-
   console.log("==================================================");
   console.log("  Summary");
   console.log("==================================================");
   console.log(`  PostgreSQL (Supabase): ${pgResult.success ? "🟢 ONLINE" : "🔴 OFFLINE"}`);
-  console.log(`  MongoDB Atlas:         ${mongoResult.success ? "🟢 ONLINE" : "🔴 OFFLINE"}`);
   console.log("==================================================\n");
 
-  if (!pgResult.success || !mongoResult.success) {
+  if (!pgResult.success) {
     process.exit(1);
   }
 }

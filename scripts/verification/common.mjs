@@ -30,7 +30,7 @@ if (existsSync(envPath)) {
 export const API_BASE_URL =
   process.env.API_BASE_URL ||
   envConfig.API_BASE_URL ||
-  "https://api.agraskbagheltourandtravels.com";
+  "http://127.0.0.1:4000";
 
 export const SUPABASE_URL =
   process.env.SUPABASE_URL ||
@@ -100,4 +100,17 @@ export function formatResult(name, passed, durationMs, details = "") {
   const symbol = passed ? "\x1b[32m✔ PASS\x1b[0m" : "\x1b[31m✖ FAIL\x1b[0m";
   const duration = `(${durationMs}ms)`.padStart(10);
   console.log(` ${symbol} ${name.padEnd(50)} ${duration} ${details ? `\x1b[90m${details}\x1b[0m` : ""}`);
+}
+
+/** Operational probes can create bookings. Never silently target production. */
+export function assertVerificationTarget(targetUrl) {
+  const url = new URL(targetUrl);
+  if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || url.search || url.hash) {
+    throw new Error("Verification target must be an HTTP(S) base URL without credentials, query, or fragment.");
+  }
+  const isLocal = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+  if (!isLocal && process.env.ALLOW_REMOTE_VERIFICATION !== "true") {
+    throw new Error("Remote verification requires explicit ALLOW_REMOTE_VERIFICATION=true and an approved staging API_BASE_URL. These probes may create data; do not target production.");
+  }
+  return url;
 }

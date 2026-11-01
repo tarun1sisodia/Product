@@ -1,6 +1,7 @@
-import { API_BASE_URL, getCustomerAuthToken, formatResult } from "./common.mjs";
+import { assertVerificationTarget, API_BASE_URL, getCustomerAuthToken, formatResult } from "./common.mjs";
 
 export async function runCustomerFlowVerification(targetUrl = API_BASE_URL) {
+  assertVerificationTarget(targetUrl);
   console.log("\n\x1b[1m\x1b[32m=== RUNNING CUSTOMER CLEAN FARE & BOOKING VERIFICATION ===\x1b[0m");
   console.log(`Target API: ${targetUrl}`);
 
@@ -48,17 +49,19 @@ export async function runCustomerFlowVerification(targetUrl = API_BASE_URL) {
     const res = await fetch(`${targetUrl}/api/v1/catalog`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
-    const products = json.products || [];
-    const vehicles = json.vehicles || [];
-    if (products.length > 0) sampleRoute = products.find(p => p.category === "routes" || p.category === "outstation") || products[0];
+    const products = json.products;
+    const vehicles = json.vehicles;
+    if (!Array.isArray(products) || !Array.isArray(vehicles)) throw new Error("Invalid published catalog structure");
+    if (products.length > 0) sampleRoute = products.find(p => p.category === "routes" || p.category === "outstation");
     if (vehicles.length > 0) sampleVehicleModelId = vehicles[0].id;
     return `${products.length} products, ${vehicles.length} vehicle models available`;
   });
 
   // 4. Quotes Options Matrix
-  if (sampleRoute) {
+  {
     const tomorrow = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
     await testOp(`Customer: Multi-Vehicle Options Matrix (/api/v1/quotes/options)`, async () => {
+      if (!sampleRoute) throw new Error("Blocked: no published route available");
       const payload = {
         category: "outstation",
         route_id: sampleRoute.id,
@@ -73,16 +76,18 @@ export async function runCustomerFlowVerification(targetUrl = API_BASE_URL) {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
-      const groups = json.groups || [];
+      const groups = json.groups;
+      if (!Array.isArray(groups) || !groups.some(g => Array.isArray(g.vehicles) && g.vehicles.length > 0)) throw new Error("No quoted vehicles available");
       return `${groups.length} vehicle groups calculated for ${json.product?.name || sampleRoute.name}`;
     });
   }
 
   // 5. Authoritative Single Quote
   let activeQuote = null;
-  if (sampleRoute && sampleVehicleModelId) {
+  {
     const tomorrow = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
     await testOp(`Customer: Single Quote Calculation (/api/v1/quotes)`, async () => {
+      if (!sampleRoute || !sampleVehicleModelId) throw new Error("Blocked: no published route/vehicle available");
       const payload = {
         category: "outstation",
         route_id: sampleRoute.id,
@@ -105,8 +110,9 @@ export async function runCustomerFlowVerification(targetUrl = API_BASE_URL) {
 
   // 6. Clean Booking Creation
   let createdBooking = null;
-  if (activeQuote && sampleRoute && sampleVehicleModelId) {
+  {
     await testOp(`Customer: Create Booking from Quote (/api/v1/bookings)`, async () => {
+      if (!activeQuote || !sampleRoute || !sampleVehicleModelId) throw new Error("Blocked: no authoritative quote available");
       const tomorrow = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
       const bookingPayload = {
         quote: {
@@ -142,9 +148,10 @@ export async function runCustomerFlowVerification(targetUrl = API_BASE_URL) {
   }
 
   // 7. Booking Details Lookup
-  if (createdBooking) {
-    const bookingId = createdBooking.id || createdBooking.booking_id;
+  {
+    const bookingId = createdBooking?.id || createdBooking?.booking_id;
     await testOp(`Customer: Get Booking Details (${bookingId})`, async () => {
+      if (!bookingId) throw new Error("Blocked: no persisted booking available");
       const res = await fetch(`${targetUrl}/api/v1/bookings/${bookingId}`, {
         method: "GET",
         headers: authHeaders,
@@ -157,6 +164,7 @@ export async function runCustomerFlowVerification(targetUrl = API_BASE_URL) {
 
     // 8. PDF Confirmation Voucher
     await testOp(`Customer: Download PDF Voucher (/api/v1/bookings/:id/pdf)`, async () => {
+      if (!bookingId) throw new Error("Blocked: no persisted booking available");
       const res = await fetch(`${targetUrl}/api/v1/bookings/${bookingId}/pdf`, {
         method: "GET",
         headers: authHeaders,
@@ -194,7 +202,9 @@ export async function runCustomerFlowVerification(targetUrl = API_BASE_URL) {
 }
 
 if (process.argv[1]?.endsWith("test-customer-flow.mjs")) {
-  runCustomerFlowVerification().catch((e) => {
+  runCustomerFlowVerification().then(({ passedCount, totalCount }) => {
+    if (totalCount === 0 || passedCount !== totalCount) process.exitCode = 1;
+  }).catch((e) => {
     console.error("Verification execution error:", e);
     process.exit(1);
   });

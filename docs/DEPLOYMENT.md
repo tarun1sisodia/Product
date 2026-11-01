@@ -12,11 +12,11 @@ ArenaAI is a single repository with three independently deployable applications.
 
 ## The local verification contract
 
-Every host runs the same command contract as CI, so a green workflow and a green local run mean the same thing. Bootstrap once, then verify:
+Use the local command contract below before a release. Hosted CI execution and deployment must be verified separately; a local green result is not production acceptance. Bootstrap once, then verify:
 
 ```bash
 npm run install:all    # npm ci for the root, react/, admin/ and backend/
-npm run verify         # typecheck (x3) + backend tests + production build (x3)
+npm run verify         # contracts + typechecks + deterministic tests + SEO + builds (x3)
 ```
 
 The individual gates, including the uptime check, can be run in isolation:
@@ -30,13 +30,13 @@ npm run build:all
 npm run healthcheck
 ```
 
-`npm test` runs 38 deterministic backend tests. The external PostgreSQL and MongoDB connectivity checks are intentionally excluded because they require live `DATABASE_URL` and `MONGODB_URI`; run `npm run backend:test` when those credentials are available in `backend/.env`.
+`npm test` runs verification-tool regressions, all deterministic backend tests, all customer unit/component tests, and admin tests. See [TESTING_STRATEGY.md](TESTING_STRATEGY.md) for commands, scope, and credential-dependent checks. PostgreSQL is the only required database; MongoDB is not part of this architecture. Run `npm --prefix backend run test:db` for connectivity using an approved test `DATABASE_URL`; this does not validate migrations/RLS or complete payment journeys.
 
-Build output is confined to `react/dist`, `admin/dist` and `backend/dist`. The only tracked file a build rewrites is `react/public/sitemap.xml` (the versioned mirror of the generated sitemap); nothing is written to the repository root, and `react/scripts/generate-sitemap.ts` must never be pointed back at the monorepo root.
+Build output is confined to the app `dist/` directories. Builds can refresh tracked customer metadata such as `react/public/release.json` and the sitemap mirror. Review generated diffs; do not include timestamp-only release metadata in a source fix. Never point sitemap generation at the repository root.
 
-## Continuous integration
+## Continuous integration (intended deployment contract)
 
-CI uses **three path-scoped workflows** so only the affected app rebuilds on each push:
+The following workflow layout is a deployment requirement, **not evidence of an installed or passing workflow**. The current checkout ignores `.github/workflows/`; verify tracked workflows, required branch checks, and an actual hosted run before claiming CI is active. The intended path-scoped layout is:
 
 | Workflow | File | Triggers when… |
 |---|---|---|
@@ -45,9 +45,9 @@ CI uses **three path-scoped workflows** so only the affected app rebuilds on eac
 | Backend API | `.github/workflows/ci-backend.yml` | `backend/**`, `render.yaml` |
 | Monorepo Root | `.github/workflows/quality.yml` | `scripts/**`, root `package.json`, workflow files |
 
-All four run on pushes to `main`, `design/**`, `arena/**`, `feat/**`, `fix/**` and on PRs into `main`, filtered to their respective paths.
+When installed, these workflows should run on pushes to `main`, `design/**`, `arena/**`, `feat/**`, `fix/**` and on PRs into `main`, filtered to their respective paths.
 
-Each app workflow runs:
+Each installed app workflow must run:
 1. `npm ci` — lockfile-enforced install.
 2. TypeScript typecheck.
 3. Production build.

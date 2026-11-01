@@ -1,15 +1,17 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { CreateBookingRequest } from "../../contracts/fare-system.js";
 import { BookingsService, PriceChangedError } from "./bookings.service.js";
-import { generateBookingPdf } from "./booking-pdf.service.js";
+import { generateBookingPdf, type BookingPdfSourceData } from "./booking-pdf.service.js";
+import { ZodError } from "zod";
 import { AppError } from "../../shared/errors.js";
 
-export function registerBookingsRoutes(app: FastifyInstance, bookingsService: BookingsService) {
+export function registerBookingsRoutes(app: FastifyInstance, bookingsService: BookingsService, requireAuthForNewBookings = false) {
   const handleCreateBooking = async (req: FastifyRequest, reply: FastifyReply) => {
-    let parsed: any;
+    let parsed: CreateBookingRequest;
     try {
       parsed = CreateBookingRequest.parse(req.body);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      if (!(err instanceof ZodError)) throw err;
       return reply.status(400).send({
         error: "VALIDATION_ERROR",
         message: err.message,
@@ -18,19 +20,19 @@ export function registerBookingsRoutes(app: FastifyInstance, bookingsService: Bo
     }
 
     try {
-      const user = (req as any).user;
-      if (!user || !user.id) {
+      const user = req.user;
+      if (requireAuthForNewBookings && !user?.id) {
         return reply.status(401).send({
           error: "AUTH_REQUIRED",
           message: "You must be signed in to book a service.",
         });
       }
-      const booking = await bookingsService.createBooking(parsed, user.id);
+      const booking = await bookingsService.createBooking(parsed, user?.id ?? null);
       return reply.status(201).send({
         success: true,
         booking,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err instanceof PriceChangedError) {
         return reply.status(409).send({
           error: "PRICE_CHANGED",
@@ -38,6 +40,8 @@ export function registerBookingsRoutes(app: FastifyInstance, bookingsService: Bo
           fresh_quote: err.freshQuote,
         });
       }
+
+      if (!(err instanceof Error)) throw err;
 
       if (
         err.message === "PRODUCT_INACTIVE" ||
@@ -87,7 +91,7 @@ export function registerBookingsRoutes(app: FastifyInstance, bookingsService: Bo
       });
     }
 
-    const user = (req as any).user;
+    const user = req.user;
     if (!user || !user.id) {
       return reply.status(401).send({
         error: "AUTH_REQUIRED",
@@ -95,7 +99,7 @@ export function registerBookingsRoutes(app: FastifyInstance, bookingsService: Bo
       });
     }
 
-    const isSuperAdmin = user.role === "super_admin" || user.role === "admin";
+    const isSuperAdmin = user.role === "super_admin";
     const isOwnerUser =
       (booking.user_id && user.id === booking.user_id) ||
       (booking.customer_email && user.email && user.email.toLowerCase() === booking.customer_email.toLowerCase());
@@ -134,7 +138,7 @@ export function registerBookingsRoutes(app: FastifyInstance, bookingsService: Bo
       });
     }
 
-    const user = (req as any).user;
+    const user = req.user;
     if (!user || !user.id) {
       return reply.status(401).send({
         error: "AUTH_REQUIRED",
@@ -142,7 +146,7 @@ export function registerBookingsRoutes(app: FastifyInstance, bookingsService: Bo
       });
     }
 
-    const isSuperAdmin = user.role === "super_admin" || user.role === "admin";
+    const isSuperAdmin = user.role === "super_admin";
     const isOwnerUser = Boolean(
       (booking.user_id && user.id === booking.user_id) ||
         (booking.customer_email && user.email && user.email.toLowerCase() === booking.customer_email.toLowerCase())
@@ -155,7 +159,7 @@ export function registerBookingsRoutes(app: FastifyInstance, bookingsService: Bo
       });
     }
 
-    let bookingData: any = booking;
+    let bookingData: BookingPdfSourceData = booking;
     if (typeof bookingsService.getBookingDetail === "function") {
       const detail = await bookingsService.getBookingDetail(id);
       if (detail) {
@@ -172,7 +176,7 @@ export function registerBookingsRoutes(app: FastifyInstance, bookingsService: Bo
       reply.header("Content-Disposition", `attachment; filename="${filename}"`);
       reply.header("Cache-Control", "no-store");
       return reply.send(pdfBuffer);
-    } catch (err: any) {
+    } catch (err: unknown) {
       req.log?.error?.(err, "Failed to generate PDF for booking %s", id);
       return reply.status(500).send({
         error: "PDF_GENERATION_FAILED",

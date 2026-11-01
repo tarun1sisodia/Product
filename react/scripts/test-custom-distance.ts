@@ -55,14 +55,18 @@ async function runTests() {
 
     // 3. checkIsNightPickup Tests
     console.log("▶ Testing checkIsNightPickup...");
-    assert.strictEqual(checkIsNightPickup("20:00"), true, "20:00 should be night");
+    assert.strictEqual(checkIsNightPickup("20:00"), false, "20:00 should be day");
+    assert.strictEqual(checkIsNightPickup("21:59"), false);
+    assert.strictEqual(checkIsNightPickup("22:00"), true);
     assert.strictEqual(checkIsNightPickup("22:30"), true, "22:30 should be night");
     assert.strictEqual(checkIsNightPickup("03:15"), true, "03:15 should be night");
-    assert.strictEqual(checkIsNightPickup("05:59"), true, "05:59 should be night");
+    assert.strictEqual(checkIsNightPickup("04:59"), true);
+    assert.strictEqual(checkIsNightPickup("05:00"), false);
+    assert.strictEqual(checkIsNightPickup("05:59"), false, "05:59 should be day");
     assert.strictEqual(checkIsNightPickup("06:00"), false, "06:00 should be day");
     assert.strictEqual(checkIsNightPickup("14:45"), false, "14:45 should be day");
     assert.strictEqual(checkIsNightPickup(undefined), false);
-    console.log("  ✓ checkIsNightPickup enforces 20:00–06:00 night window");
+    console.log("  ✓ checkIsNightPickup enforces 22:00–05:00 night window");
 
     // 4. formatEstimatedDuration Tests
     console.log("▶ Testing formatEstimatedDuration...");
@@ -162,7 +166,7 @@ async function runTests() {
     assert.strictEqual(trip.recommendedVehicle.vehicleId, "sedan");
 
     console.log("  ✓ estimateVehicleFare calculates accurate billable km, tolls, 300 km/day rule, night fee, and 28% deposit");
-    console.log("\n✅ All 35 Custom Destination & Fare Estimator assertions PASSED cleanly!");
+    console.log("\n✅ All Custom Destination & Fare Estimator assertions PASSED cleanly!");
   } finally {
     await vite.close();
   }

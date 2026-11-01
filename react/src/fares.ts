@@ -115,7 +115,7 @@ export function fitsPassengers(vehicle: Vehicle, passengers: number): boolean {
 }
 
 /**
- * Night allowance constants: flat fee for outstation pickups after 8:00 PM (20:00–06:00).
+ * Night allowance constants: flat fee for outstation pickups between 10:00 PM and 05:00 AM (22:00–05:00).
  * Standard: ₹300 for passenger cabs, ₹500 for Tempo Travellers and Urbanias.
  */
 export const NIGHT_ALLOWANCE = outstationRules.nightAllowanceCab;
@@ -128,11 +128,11 @@ export function getNightAllowance(vehicleId: VehicleId): number {
 }
 
 /**
- * Checks whether a pickup time string (HH:MM) falls in the night allowance window (20:00 to 06:00).
+ * Checks whether a pickup time string (HH:MM) falls in the night allowance window (22:00 to 05:00).
  */
 export function isNightTime(time?: string): boolean {
-  if (!time) return false;
-  const hour = Number(String(time).split(":")[0]);
+  if (!time || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) return false;
+  const hour = Number(time.split(":")[0]);
   if (Number.isNaN(hour)) return false;
   return hour >= outstationRules.nightStartHour || hour < outstationRules.nightEndHour;
 }

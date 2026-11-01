@@ -1,300 +1,89 @@
-import assert from "node:assert";
-import { dirname, join } from "node:path";
+import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 import { createServer } from "vite";
 
-const __filename = fileURLToPath(import.meta.url);
-const scriptsDir = dirname(__filename);
-const reactRoot = join(scriptsDir, "..");
-
+// PLATFORM_ARCHITECTURE: provider credentials belong to the backend. These
+// fixtures deliberately use the proxy envelope, never the raw provider API.
 async function runTests() {
-  console.log("🧪 Running LocationIQ Client & Hook Automated Tests...");
-
   const vite = await createServer({
+    root: fileURLToPath(new URL("..", import.meta.url)),
     server: { middlewareMode: true },
     appType: "custom",
-    root: reactRoot,
     optimizeDeps: { noDiscovery: true },
   });
-
+  const originalFetch = globalThis.fetch;
+  let assertions = 0;
+  const equal = (actual: unknown, expected: unknown, message?: string) => {
+    assert.deepEqual(actual, expected, message);
+    assertions++;
+  };
   try {
-    const { fetchLocationIQSuggestions } = await vite.ssrLoadModule(
-      "/src/hooks/useLocationIQ.ts"
-    );
-    const {
-      getLocationIqAccessToken,
-      setLocationIqAccessToken,
-      clearLocationIqAccessToken,
-    } = await vite.ssrLoadModule("/src/config.ts");
+    const { fetchLocationIQSuggestions } = await vite.ssrLoadModule("/src/hooks/useLocationIQ.ts");
+    let calls = 0;
+    globalThis.fetch = async () => { calls++; throw new Error("Unexpected network request"); };
+    for (const query of ["a", "   "]) equal(await fetchLocationIQSuggestions({ query }), []);
+    const preAborted = new AbortController();
+    preAborted.abort();
+    equal(await fetchLocationIQSuggestions({ query: "Agra", signal: preAborted.signal }), []);
+    equal(calls, 0, "Short queries and pre-aborted searches must not call the proxy");
 
-    // 1. Short query returns empty
-    const shortResult = await fetchLocationIQSuggestions({
-      query: "a",
-      token: "sample-token",
-    });
-    assert.deepStrictEqual(
-      shortResult,
-      [],
-      "Query with < 2 characters must return empty array"
-    );
-
-    // 2. Whitespace query returns empty
-    const emptyResult = await fetchLocationIQSuggestions({
-      query: "   ",
-      token: "sample-token",
-    });
-    assert.deepStrictEqual(
-      emptyResult,
-      [],
-      "Whitespace query must return empty array"
-    );
-
-    // 3. Missing browser token still uses the secure backend proxy.
-    // The proxy owns the LocationIQ credential, so no client token is needed.
-    const originalFetchBeforeProxyTest = globalThis.fetch;
-    globalThis.fetch = async () => {
-      return new Response(JSON.stringify({
-        success: true,
-        data: { source: "provider", suggestions: [] },
-      }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
-    };
-    const noTokenResult = await fetchLocationIQSuggestions({
-      query: "Delhi",
-      token: "",
-    });
-    globalThis.fetch = originalFetchBeforeProxyTest;
-    assert.deepStrictEqual(
-      noTokenResult,
-      [],
-      "Missing browser token must still query the backend proxy"
-    );
-
-    // 4. Mock fetch for autocomplete suggestions parsing
-    const originalFetch = globalThis.fetch;
-    let capturedUrl = "";
-
-    const mockPlaces = [
-      {
-        place_id: "98765",
-        lat: "27.1751448",
-        lon: "78.0421422",
-        display_name:
-          "Taj Mahal, Dharmapuri, Forest Colony, Tajganj, Agra, Uttar Pradesh, 282001, India",
-        address: {
-          suburb: "Tajganj",
-          city: "Agra",
-          state: "Uttar Pradesh",
-          postcode: "282001",
-          country: "India",
-          country_code: "in",
-        },
-      },
-      {
-        place_id: "54321",
-        lat: "28.5561624",
-        lon: "77.1002812",
-        display_name:
-          "Indira Gandhi International Airport, New Delhi, Delhi, India",
-        address: {
-          city: "New Delhi",
-          state: "Delhi",
-          country: "India",
-          country_code: "in",
-        },
-      },
+    const suggestions = [
+      { placeId: "98765", displayName: "Taj Mahal, Agra, Uttar Pradesh", city: "Agra", state: "Uttar Pradesh", lat: 27.1751448, lon: 78.0421422 },
+      { placeId: "54321", displayName: "Indira Gandhi International Airport, New Delhi, Delhi", city: "New Delhi", state: "Delhi", lat: 28.5561624, lon: 77.1002812 },
     ];
-
-    globalThis.fetch = async (input: RequestInfo | URL) => {
+    let capturedUrl = "";
+    globalThis.fetch = async (input) => {
       capturedUrl = String(input);
-      return new Response(JSON.stringify(mockPlaces), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
+      calls++;
+      return Response.json({ success: true, data: { source: "provider", suggestions } });
     };
+    const results = await fetchLocationIQSuggestions({ query: "  Taj Mahal  " });
+    equal(calls, 1, "Searching must work without any browser token");
+    const url = new URL(capturedUrl, "https://customer.example.test");
+    equal(url.pathname, "/api/v1/locations/autocomplete");
+    equal(url.searchParams.get("q"), "Taj Mahal");
+    equal([...url.searchParams.keys()], ["q"], "No provider key may be sent by the browser");
+    equal(capturedUrl.includes("locationiq.com"), false, "Never contact the provider from the browser");
+    equal(results.length, 2);
+    equal(results[0], {
+      id: "location-98765", name: "Taj Mahal", subtitle: suggestions[0].displayName,
+      code: "IQ", isLocationIQ: true, lat: 27.1751448, lon: 78.0421422,
+      raw: { place_id: "98765", lat: "27.1751448", lon: "78.0421422", display_name: suggestions[0].displayName },
+    });
+    equal(results[1].name, "Indira Gandhi International Airport");
 
-    try {
-      const suggestions = await fetchLocationIQSuggestions({
-        query: "Taj",
-        token: "test_token_123",
-        limit: 5,
-        countrycodes: "in",
-      });
+    // The client also supports the array envelope used by older proxy versions.
+    globalThis.fetch = async () => Response.json({ success: true, data: suggestions });
+    equal((await fetchLocationIQSuggestions({ query: "Agra" })).length, 2);
 
-      assert.strictEqual(
-        suggestions.length,
-        2,
-        "Expected 2 suggestions parsed from API response"
-      );
-
-      // URL parameter verification
-      assert(
-        capturedUrl.startsWith("https://api.locationiq.com/v1/autocomplete"),
-        "Must hit LocationIQ autocomplete endpoint"
-      );
-      assert(
-        capturedUrl.includes("key=test_token_123"),
-        "Must include token key"
-      );
-      assert(capturedUrl.includes("q=Taj"), "Must include query param");
-      assert(capturedUrl.includes("limit=5"), "Must include limit param");
-      assert(
-        capturedUrl.includes("countrycodes=in"),
-        "Must include countrycodes param"
-      );
-      assert(capturedUrl.includes("format=json"), "Must request json format");
-
-      // Item 1 structure
-      const taj = suggestions[0];
-      assert.strictEqual(taj.id, "locationiq-98765");
-      assert.strictEqual(taj.name, "Taj Mahal");
-      assert.strictEqual(taj.subtitle, "Agra, Uttar Pradesh, 282001");
-      assert.strictEqual(taj.code, "IQ");
-      assert.strictEqual(taj.isLocationIQ, true);
-      assert.strictEqual(taj.lat, 27.1751448);
-      assert.strictEqual(taj.lon, 78.0421422);
-      assert.strictEqual(taj.raw?.place_id, "98765");
-
-      // Item 2 structure
-      const airport = suggestions[1];
-      assert.strictEqual(airport.id, "locationiq-54321");
-      assert.strictEqual(
-        airport.name,
-        "Indira Gandhi International Airport"
-      );
-      assert.strictEqual(airport.subtitle, "New Delhi, Delhi");
-      assert.strictEqual(airport.code, "IQ");
-      assert.strictEqual(airport.isLocationIQ, true);
-
-      // 5. Test 401 Authorization error
-      globalThis.fetch = async () => {
-        return new Response("Unauthorized", { status: 401 });
-      };
-
-      let caught401 = false;
-      try {
-        await fetchLocationIQSuggestions({
-          query: "Agra",
-          token: "bad_token",
-        });
-      } catch (e: any) {
-        caught401 = true;
-        assert(
-          e.message.includes("LocationIQ authorization failed (401)"),
-          `Unexpected error message: ${e.message}`
-        );
-      }
-      assert(caught401, "Expected 401 error to be thrown");
-
-      // 6. Test 429 Rate limit error
-      globalThis.fetch = async () => {
-        return new Response("Rate limit exceeded", { status: 429 });
-      };
-
-      let caught429 = false;
-      try {
-        await fetchLocationIQSuggestions({
-          query: "Agra",
-          token: "overused_token",
-        });
-      } catch (e: any) {
-        caught429 = true;
-        assert(
-          e.message.includes("LocationIQ rate limit exceeded (429)"),
-          `Unexpected error message: ${e.message}`
-        );
-      }
-      assert(caught429, "Expected 429 error to be thrown");
-
-      // 7. Test AbortSignal cancellation
-      // 7a. Pre-aborted signal
-      const controller = new AbortController();
-      controller.abort();
-
-      const abortedResults = await fetchLocationIQSuggestions({
-        query: "Jaipur",
-        token: "test_token",
-        signal: controller.signal,
-      });
-      assert.deepStrictEqual(
-        abortedResults,
-        [],
-        "Pre-aborted request must return empty array without throwing"
-      );
-
-      // 7b. Signal aborted during network fetch
-      const activeController = new AbortController();
-      globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-        if (init?.signal?.aborted) {
-          throw new DOMException("The operation was aborted", "AbortError");
-        }
-        return new Promise((_, reject) => {
-          init?.signal?.addEventListener("abort", () => {
-            reject(new DOMException("The operation was aborted", "AbortError"));
-          });
-          setTimeout(() => {
-            activeController.abort();
-          }, 10);
-        });
-      };
-
-      const abortedMidFlight = await fetchLocationIQSuggestions({
-        query: "Gwalior",
-        token: "test_token",
-        signal: activeController.signal,
-      });
-      assert.deepStrictEqual(
-        abortedMidFlight,
-        [],
-        "Mid-flight aborted request must return empty array without throwing"
-      );
-    } finally {
-      globalThis.fetch = originalFetch;
+    // Provider/proxy failures must permit curated destinations, never a direct
+    // provider retry or a request for a token in the public UI.
+    for (const status of [401, 429, 503]) {
+      let attempts = 0;
+      globalThis.fetch = async () => { attempts++; return new Response("Unavailable", { status }); };
+      equal(await fetchLocationIQSuggestions({ query: "Agra" }), []);
+      equal(attempts, 1, `HTTP ${status} must not cause a direct-provider retry`);
     }
+    for (const body of [{ success: true, data: { suggestions: [] } }, { unexpected: true }]) {
+      globalThis.fetch = async () => Response.json(body);
+      equal(await fetchLocationIQSuggestions({ query: "Agra" }), []);
+    }
+    globalThis.fetch = async () => { throw new TypeError("Network unavailable"); };
+    equal(await fetchLocationIQSuggestions({ query: "Agra" }), []);
+    globalThis.fetch = async () => new Response("invalid JSON", { status: 200 });
+    equal(await fetchLocationIQSuggestions({ query: "Agra" }), []);
 
-    // 8. Test runtime token helpers
-    const storage = new Map<string, string>();
-    (globalThis as any).window = {
-      localStorage: {
-        getItem: (key: string) => storage.get(key) || null,
-        setItem: (key: string, val: string) => storage.set(key, val),
-        removeItem: (key: string) => storage.delete(key),
-      },
-      location: { search: "" },
-    };
-
-    clearLocationIqAccessToken();
-    assert.strictEqual(
-      getLocationIqAccessToken(),
-      "",
-      "Token should be empty after clear"
-    );
-
-    setLocationIqAccessToken("my_test_access_token_999");
-    assert.strictEqual(
-      getLocationIqAccessToken(),
-      "my_test_access_token_999",
-      "Token should match persisted value"
-    );
-
-    clearLocationIqAccessToken();
-    assert.strictEqual(
-      getLocationIqAccessToken(),
-      "",
-      "Token should be cleared"
-    );
-
-    delete (globalThis as any).window;
-
-    console.log("✅ All 24 LocationIQ Client & Hook unit assertions PASSED!");
+    const active = new AbortController();
+    globalThis.fetch = async (_input, init) => new Promise((_resolve, reject) => {
+      equal(init?.signal, active.signal, "Forward the abort signal to fetch");
+      init?.signal?.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")), { once: true });
+      active.abort();
+    });
+    equal(await fetchLocationIQSuggestions({ query: "Jaipur", signal: active.signal }), []);
+    console.log(`LocationIQ proxy: ${assertions} assertions passed (mocked; not a live-provider test).`);
   } finally {
+    globalThis.fetch = originalFetch;
     await vite.close();
   }
 }
-
-runTests().catch((err) => {
-  console.error("❌ Test failed:", err);
-  process.exit(1);
-});
+runTests().catch((error) => { console.error(error); process.exitCode = 1; });

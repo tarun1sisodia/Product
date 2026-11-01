@@ -1,6 +1,7 @@
-import { API_BASE_URL, getAdminAuthToken, formatResult } from "./common.mjs";
+import { assertVerificationTarget, API_BASE_URL, getAdminAuthToken, formatResult } from "./common.mjs";
 
 export async function runAdminOperationsVerification(targetUrl = API_BASE_URL) {
+  assertVerificationTarget(targetUrl);
   console.log("\n\x1b[1m\x1b[35m=== RUNNING ADMIN OPERATIONS DESK VERIFICATION ===\x1b[0m");
   console.log(`Target API: ${targetUrl}`);
 
@@ -86,8 +87,9 @@ export async function runAdminOperationsVerification(targetUrl = API_BASE_URL) {
   });
 
   // 7. Route Vehicles Pricing Grid
-  if (sampleRouteId) {
+  {
     await testOp(`Admin: Get Route Pricing Grid (${sampleRouteId})`, async () => {
+      if (!sampleRouteId) throw new Error("Blocked: no route available for pricing-grid verification");
       const res = await fetch(`${targetUrl}/api/v1/admin/routes/${sampleRouteId}/vehicles`, { headers });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
@@ -131,7 +133,9 @@ export async function runAdminOperationsVerification(targetUrl = API_BASE_URL) {
 }
 
 if (process.argv[1]?.endsWith("test-admin-operations.mjs")) {
-  runAdminOperationsVerification().catch((e) => {
+  runAdminOperationsVerification().then(({ passedCount, totalCount }) => {
+    if (totalCount === 0 || passedCount !== totalCount) process.exitCode = 1;
+  }).catch((e) => {
     console.error("Verification execution error:", e);
     process.exit(1);
   });

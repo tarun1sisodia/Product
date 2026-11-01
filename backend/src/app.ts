@@ -393,7 +393,7 @@ export async function buildApp(options: AppOptions): Promise<BuiltApp> {
     const bookingsRepo = new BookingsRepository(farePool);
     const bookingsService = new BookingsService(bookingsRepo, quotesService);
     cleanBookingsService = bookingsService;
-    await registerBookingsRoutes(app, bookingsService);
+    await registerBookingsRoutes(app, bookingsService, env.CUSTOMER_AUTH_REQUIRED_FOR_NEW_BOOKINGS);
 
     const paymentsRepo = new PaymentsRepository(farePool);
     const paymentsService = new PaymentsService({

@@ -1,6 +1,10 @@
 import { Pool } from 'pg';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import pino from 'pino';
+import { existsSync, readFileSync } from 'node:fs';
+import { parseEnv } from 'node:util';
+import { createPoolConfig } from '../src/db/poolConfig.js';
+
+const logger = pino({ name: 'environment-audit' });
 
 interface CheckResult {
   service: string;
@@ -10,50 +14,51 @@ interface CheckResult {
 
 const results: CheckResult[] = [];
 
-// Parse .env manually to avoid logging secrets
-const envFile = readFileSync(resolve(process.cwd(), '.env'), 'utf8');
-const env: Record<string, string> = {};
-for (const line of envFile.split('\n')) {
-  const trimmed = line.trim();
-  if (!trimmed || trimmed.startsWith('#')) continue;
-  const idx = trimmed.indexOf('=');
-  if (idx !== -1) {
-    const key = trimmed.slice(0, idx).trim();
-    let val = trimmed.slice(idx + 1).trim();
-    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
-      val = val.slice(1, -1);
-    }
-    env[key] = val;
+// Deployment environments inject variables directly; a local file is optional.
+// Process values take precedence, including deliberate empty overrides.
+const envPath = new URL('../.env', import.meta.url);
+const env: NodeJS.ProcessEnv = {
+  ...(existsSync(envPath) ? parseEnv(readFileSync(envPath, 'utf8')) : {}),
+  ...process.env,
+};
+function request(url: string, options: RequestInit = {}): Promise<Response> {
+  return fetch(url, { ...options, signal: AbortSignal.timeout(15000) });
+}
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Unexpected provider error";
+}
+function safeDetails(details: string): string {
+  let result = details;
+  for (const [key, value] of Object.entries(env)) {
+    if (value && value.length >= 4 && /secret|token|password|key|database_url/i.test(key)) result = result.replaceAll(value, '[REDACTED]');
   }
+  return result;
 }
 
 async function runChecks() {
-  console.log('======================================================');
-  console.log('       RUNNING BACKEND ENVIRONMENT & SERVICE AUDIT    ');
-  console.log('======================================================\n');
+  logger.info('======================================================');
+  logger.info('       RUNNING BACKEND ENVIRONMENT & SERVICE AUDIT    ');
+  logger.info('======================================================\n');
 
   // 1. Database Connection
   if (env.DATABASE_URL) {
+    const pool = new Pool(createPoolConfig(env.DATABASE_URL, { connectionTimeoutMillis: 5000 }));
     try {
-      const pool = new Pool({
-        connectionString: env.DATABASE_URL,
-        ssl: { rejectUnauthorized: false },
-        connectionTimeoutMillis: 5000,
-      });
       const t0 = Date.now();
       const res = await pool.query('SELECT NOW() as current_time, current_database() as db_name, COUNT(*)::int as count FROM tour_packages');
-      await pool.end();
       results.push({
         service: 'Database (PostgreSQL / Supabase)',
         status: 'PASS',
         details: `Connected in ${Date.now() - t0}ms. Database: "${res.rows[0].db_name}". Found ${res.rows[0].count} tour packages.`
       });
-    } catch (e: any) {
+    } catch (e: unknown) {
       results.push({
         service: 'Database (PostgreSQL / Supabase)',
         status: 'FAIL',
-        details: `Connection failed: ${e.message}`
+        details: `Connection failed: ${errorMessage(e)}`
       });
+    } finally {
+      await pool.end();
     }
   } else {
     results.push({
@@ -69,7 +74,7 @@ async function runChecks() {
   const s3Key = env.S3_ACCESS_KEY_ID;
   const s3Secret = env.S3_SECRET_ACCESS_KEY;
 
-  if (s3Endpoint && s3Bucket && s3Key && s3Secret) {
+  if (s3Endpoint && s3Bucket && s3Key && s3Secret && env.ALLOW_STORAGE_WRITE_PROBE === 'true') {
     try {
       const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = await import('@aws-sdk/client-s3');
       const client = new S3Client({
@@ -114,13 +119,15 @@ async function runChecks() {
           details: `Read content mismatch on bucket "${s3Bucket}".`
         });
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       results.push({
         service: 'Cloudflare R2 Storage (Primary)',
         status: 'FAIL',
-        details: `R2 check failed: ${e.message}`
+        details: `R2 check failed: ${errorMessage(e)}`
       });
     }
+  } else if (s3Endpoint && s3Bucket && s3Key && s3Secret) {
+    results.push({ service: 'Cloudflare R2 Storage (Primary)', status: 'WARN', details: 'Storage write/read/delete probe not run. It requires ALLOW_STORAGE_WRITE_PROBE=true on an approved test bucket.' });
   } else {
     results.push({
       service: 'Cloudflare R2 Storage (Primary)',
@@ -135,14 +142,14 @@ async function runChecks() {
   const supabaseBucket = env.SUPABASE_MEDIA_BUCKET || 'documents';
   if (supabaseUrl && supabaseKey) {
     try {
-      const res = await fetch(`${supabaseUrl}/storage/v1/bucket/${supabaseBucket}`, {
+      const res = await request(`${supabaseUrl}/storage/v1/bucket/${supabaseBucket}`, {
         headers: {
           'apikey': supabaseKey,
           'Authorization': `Bearer ${supabaseKey}`,
         },
       });
       if (res.ok) {
-        const bucketData = await res.json() as any;
+        const bucketData = await res.json() as { name?: string; public?: boolean };
         results.push({
           service: 'Supabase Storage (Secondary / Failover)',
           status: 'PASS',
@@ -155,11 +162,11 @@ async function runChecks() {
           details: `HTTP ${res.status} accessing bucket "${supabaseBucket}".`
         });
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       results.push({
         service: 'Supabase Storage (Secondary / Failover)',
         status: 'FAIL',
-        details: `Supabase Storage check failed: ${e.message}`
+        details: `Supabase Storage check failed: ${errorMessage(e)}`
       });
     }
   }
@@ -168,8 +175,8 @@ async function runChecks() {
   if (s3Endpoint && s3Key && s3Secret && supabaseUrl && supabaseKey) {
     results.push({
       service: 'Resilient Multi-Tier Dual Storage',
-      status: 'PASS',
-      details: `Active! Primary: Cloudflare R2 ("${s3Bucket}") | Secondary: Supabase ("${supabaseBucket}"). Dual-write & automatic failover enabled.`
+      status: 'INFO',
+      details: 'Both storage backends are configured. Dual-write and automatic failover have NOT been verified by this audit.'
     });
   }
 
@@ -177,29 +184,29 @@ async function runChecks() {
   if (env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET) {
     try {
       const auth = Buffer.from(`${env.RAZORPAY_KEY_ID}:${env.RAZORPAY_KEY_SECRET}`).toString('base64');
-      const res = await fetch('https://api.razorpay.com/v1/payments?count=1', {
+      const res = await request('https://api.razorpay.com/v1/payments?count=1', {
         headers: { Authorization: `Basic ${auth}` },
       });
       if (res.ok) {
-        const data = await res.json() as any;
+        const data = await res.json() as { items?: unknown[] };
         results.push({
           service: 'Razorpay Payment Gateway',
           status: 'PASS',
-          details: `Credentials valid. API responded HTTP 200 (retrieved ${data.items?.length ?? 0} sample payments). Key: ${env.RAZORPAY_KEY_ID.substring(0, 8)}...`
+          details: `Credentials valid. API responded HTTP 200 (retrieved ${data.items?.length ?? 0} sample payments).`
         });
       } else {
-        const errText = await res.text();
+
         results.push({
           service: 'Razorpay Payment Gateway',
           status: 'FAIL',
-          details: `HTTP ${res.status}: ${errText}`
+          details: `HTTP ${res.status}`
         });
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       results.push({
         service: 'Razorpay Payment Gateway',
         status: 'FAIL',
-        details: `Connection failed: ${e.message}`
+        details: `Connection failed: ${errorMessage(e)}`
       });
     }
   } else {
@@ -210,82 +217,48 @@ async function runChecks() {
     });
   }
 
-  // 4. Resend Email API
+  // Read-only credential/scope check. Never send an email as an audit probe.
   if (env.RESEND_API_KEY) {
     try {
-      // Test send-permission by pinging email endpoint with validation probe
-      const res = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: 'check@example.com',
-          to: 'test@example.com',
-          subject: 'probe',
-          html: '<p>probe</p>',
-        }),
+      const res = await request('https://api.resend.com/domains', {
+        headers: { Authorization: `Bearer ${env.RESEND_API_KEY}` },
       });
-      const data = await res.json() as any;
-      if (data?.name === 'validation_error' || res.status === 422 || res.ok) {
-        results.push({
-          service: 'Resend Email Service',
-          status: 'PASS',
-          details: 'API key is valid and authenticated for sending emails (restricted send-only key).'
-        });
-      } else if (res.status === 401) {
-        results.push({
-          service: 'Resend Email Service',
-          status: 'FAIL',
-          details: `Authentication failed: ${data?.message || 'Invalid API Key'}`
-        });
-      } else {
-        results.push({
-          service: 'Resend Email Service',
-          status: 'WARN',
-          details: `HTTP ${res.status}: ${data?.message || 'Unexpected response'}`
-        });
-      }
-    } catch (e: any) {
       results.push({
         service: 'Resend Email Service',
-        status: 'FAIL',
-        details: `Connection error: ${e.message}`
+        status: res.ok ? 'PASS' : res.status === 403 ? 'WARN' : 'FAIL',
+        details: res.ok ? 'Domain read access verified; sending/delivery NOT tested.' : `Read-only credential check returned HTTP ${res.status}; send-only keys may lack this scope. Delivery remains unverified.`,
       });
+    } catch (e: unknown) {
+      results.push({ service: 'Resend Email Service', status: 'FAIL', details: `Connection error: ${errorMessage(e)}` });
     }
   } else {
-    results.push({
-      service: 'Resend Email Service',
-      status: 'WARN',
-      details: 'RESEND_API_KEY is not set.'
-    });
+    results.push({ service: 'Resend Email Service', status: 'WARN', details: 'RESEND_API_KEY is not set; delivery is unverified.' });
   }
 
   // 5. LocationIQ Token
   if (env.LOCATIONIQ_TOKEN) {
     try {
-      const res = await fetch(`https://us1.locationiq.com/v1/search?key=${env.LOCATIONIQ_TOKEN}&q=Taj+Mahal+Agra&format=json&limit=1`);
+      const res = await request(`https://us1.locationiq.com/v1/search?key=${env.LOCATIONIQ_TOKEN}&q=Taj+Mahal+Agra&format=json&limit=1`);
       if (res.ok) {
-        const data = await res.json() as any;
+        const data = await res.json() as Array<{ lat?: string; lon?: string }>;
         results.push({
           service: 'LocationIQ Geocoding API',
           status: 'PASS',
           details: `Token valid. Geocoded "Taj Mahal Agra" -> lat: ${data[0]?.lat}, lon: ${data[0]?.lon}`
         });
       } else {
-        const err = await res.text();
+
         results.push({
           service: 'LocationIQ Geocoding API',
           status: 'FAIL',
-          details: `HTTP ${res.status}: ${err}`
+          details: `HTTP ${res.status}`
         });
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       results.push({
         service: 'LocationIQ Geocoding API',
         status: 'FAIL',
-        details: `Connection error: ${e.message}`
+        details: `Connection error: ${errorMessage(e)}`
       });
     }
   } else {
@@ -307,11 +280,11 @@ async function runChecks() {
         status: 'PASS',
         details: `Configured pointing to ${parsed.origin}${parsed.pathname.slice(0, 15)}... (valid URL format)`
       });
-    } catch (e: any) {
+    } catch (e: unknown) {
       results.push({
         service: 'Pages Deploy Hook URL',
         status: 'WARN',
-        details: `Invalid URL format: ${e.message}`
+        details: `Invalid URL format: ${errorMessage(e)}`
       });
     }
   } else {
@@ -326,10 +299,10 @@ async function runChecks() {
   if (env.CLOUDFLARE_API_TOKEN) {
     const raw = env.CLOUDFLARE_API_TOKEN;
     try {
-      const res = await fetch('https://api.cloudflare.com/client/v4/user/tokens/verify', {
+      const res = await request('https://api.cloudflare.com/client/v4/user/tokens/verify', {
         headers: { Authorization: `Bearer ${raw}` }
       });
-      const data = await res.json() as any;
+      const data = await res.json() as { success?: boolean; result?: { status?: string }; errors?: Array<{ code?: number }> };
       if (data.success) {
         results.push({
           service: 'Cloudflare API Token',
@@ -340,14 +313,14 @@ async function runChecks() {
         results.push({
           service: 'Cloudflare API Token',
           status: 'WARN',
-          details: `Cloudflare API returned "Invalid API Token" (code ${data.errors?.[0]?.code}). Note: It starts with "${raw.substring(0, 4)}", which is a Cloudflare R2 Scoped User/App token rather than a Cloudflare Management API Token (or it has limited scopes).`
+          details: `Cloudflare token verification failed (code ${data.errors?.[0]?.code}); verify token type and scopes.`
         });
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       results.push({
         service: 'Cloudflare API Token',
         status: 'FAIL',
-        details: `Connection error: ${e.message}`
+        details: `Connection error: ${errorMessage(e)}`
       });
     }
   }
@@ -355,9 +328,10 @@ async function runChecks() {
   // 8. Print Summary Table
   for (const r of results) {
     const icon = r.status === 'PASS' ? '✔' : r.status === 'FAIL' ? '✖' : '⚠';
-    console.log(`[${icon} ${r.status}] ${r.service}`);
-    console.log(`     ${r.details}\n`);
+    logger.info(`[${icon} ${r.status}] ${r.service}`);
+    logger.info(`     ${safeDetails(r.details)}\n`);
   }
+  if (results.some(result => result.status === 'FAIL')) process.exitCode = 1;
 }
 
-runChecks().catch(console.error);
+runChecks().catch(() => { logger.error('Environment audit failed unexpectedly; no successful verification recorded.'); process.exitCode = 1; });
